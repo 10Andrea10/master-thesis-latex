@@ -1,35 +1,31 @@
-\chapter{Requirements\label{cha:chapter3}}
-This section determines the requirements necessary for X. This includes the functional aspects, namely Y and Z, and the non functional aspects such as A and B.
+\chapter{Research Question \& Requirements\label{cha:chapter3}}
+The goal of this Master Thesis is to complete the implementation of the Zk-Rollup project, test it under different conditions, evaluate its performances and finally show a proof of concept of the system applied to a real world application. This will bring a good understanding of the rollup system and show how it can be used and applied to other minor blockchain without many adaptations. This differs to other scaling solutions, like the ones described in \cite{yang_review_2020}, because they are developed closely to the blockchain they are applied to, limiting the future possibility to extend that solution.
 
-\section{Overview\label{sec:reqoverview}}
+\section{Completing the \textit{Scale Tezos Blockchain with Zk-Rollups} project}
+The first goal of this Master Thesis is to finish the implementation of the Zk-Rollup project started during the Winter Semester 2022/2023 at the University of Berlin. This includes the implementation of all the missing points of the project listed at \ref{subsec:missingParts}. The partially already answered research question for this project is: \textit{How can an efficient Zk-Rollup system be implemented for the Tezos Blockchain?}
 
-In this chapter you will describe the requirements for your component. Try to group the requirements into subsections such as 'technical requirements', 'functional requirements', 'social requirements' or something like this. If your component consist of different partial components you can also group the requirements for the corresponding parts. 
+The rollup system must be capable of being usable for many applications, so it has to be developed keeping in mind to have it the most extensible, modular and blockchain agnostic as possible. This is a key concept that makes it possible to extend it in the future, implementing new features and optimizations.
 
-Explain the source of the requirements. 
+\section{Scaling the Zk-Rollup system}
+The second research area of this Master Thesis must answer the question: \textit{How can the previously implemented  Zk-Rollup system scale when facing a fluctuating number of users?}
 
-Example: The requirements for an X have been widely investigated by Organization Y. 
+It is in fact important to understand how can the system scale: horizontally, adding more nodes to increase the throughput and decentralization of the system; vertically assigning more compute capabilities to the machines; applying algorithms to distribute the load between the nodes.
 
-In his paper about Z, Mister X outlines the following requirements for a Component X.
+This research question is a key concept to make the system usable in a real world application, when the number of users is not constant, but it can vary a lot in a short period of time while the system must be able to handle it.
 
-\section{Technical Requirements\label{sec:techreq}}
+\section{Proof of concept of the Zk-Rollup system applied to a NFT Marketplace}
+The last area to explore is guided by the question: \textit{How can the Zk-Rollup system be applied to a real world application?}
 
-The following subsection outlines the technical requirements to Component X.
+The application chosen for this proof of concept is a NFT Marketplace. It has been chosen because the transfers involve tokens and the ownerships of the NFTs through an IPFS system. The NFTs must be handled by the application without sacrificing the decentralization of the system. This type of marketplace has also a fluctuating number of users and transactions, involving the same NTFT object, so it is a valid example to test the system applied on a real world application.
 
-\subsection{Sub-component A\label{sec:reqsuba}}
+\section{Smart Contracts Requirements}
 
-\textbf{Interoperability}
-\\
-Lorem Ipsum...
-\\
-\\
-\textbf{Scalability}
-\\
-Lorem Ipsum...
+The smart contracts and layer 2 programs should prioritize system extensibility and modularity. They must be designed to efficiently handle a large number of users and transactions. However, when developing using smart contracts and zk proofs, certain constraints must be taken into account.
 
-\subsection{Sub-component B\label{sec:reqsubb}}
+\subsection{Computation Gas Limit}
 
-Lorem Ipsum...
+The computations executed within a smart contract are subject to a gas limit, a value set by the blockchain. The gas limit restricts the amount of computation a smart contract can perform in a transaction, preventing infinite loops and limiting computation within a single transaction. While users can set the gas limit when sending a transaction, it cannot exceed the maximum gas limit set by the blockchain. If the gas limit is reached during transaction execution, the transaction is reverted, and the user loses the gas used for computation. Currently, the Tezos blockchain sets a gas limit of 1040000 gas units for transactions\footnote{\url{https://mainnet.api.tez.ie/chains/main/blocks/4001570/context/constants}}.
 
-\section{Social Requirements\label{sec:socreq}}
+\subsection{Storage Read Limit}
 
-Component X must compete with Y. Hence, it is required to provide an excellent usability. This includes ...
+The rollup smart contract is responsible for storing registered accounts, balances, and associated tokens within the rollup system. While there is no specific predefined limit on the storage size, it becomes a critical factor during entrypoint execution. Upon each entrypoint call, the contract and its storage are deserialized for use by the Michelson interpreter. To avoid excessive time consumption and reaching the gas limit, it's crucial to keep the contract's storage as compact as possible. If the storage becomes too large, the contract may become unusable due to the gas limit being reached before the contract can be deserialized. A recommended solution offered by Tezos is to utilize big maps for storing data. Big maps are special maps that are only deserialized when accessed, and only the required data is loaded, allowing for more efficient storage management. However, it's important to note that iterating over big maps or determining their size is not directly supported.

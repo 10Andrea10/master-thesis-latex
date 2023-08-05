@@ -1,39 +1,32 @@
-\chapter{Introduction\label{cha:chapter1}}
+\chapter{Introduction}\label{cha:chapter1}
 
-This chapter should have about 4-8 pages and at least one image, describing your topic and your concept. Usually the introduction chapter is separated into subsections like 'motivation', 'objective', 'scope' and 'outline'.
+This chapter provides an overview of the motivation, context, and objectives of the thesis.
 
-\section{Motivation\label{sec:moti}}
+\section{Motivation}\label{sec:moti}
 
-Start describing the situation as it is today or as it has been during the last years. 'Over the last few years there has been a tendency... In recent years...'. The introduction should make people aware of the problem that you are trying to solve with your concept, respectively implementation. Don't start with 'In my thesis I will implement X'.
+In recent years, blockchain technology has witnessed remarkable growth, with the introduction of Bitcoin in 2008 \cite{nakamoto_bitcoin_2008} marking the emergence of a decentralized, distributed ledger concept. Since then, numerous blockchains with unique features have been developed, gaining widespread popularity.
 
-\section{Objective\label{sec:objective}}
+As the popularity of blockchains continues to rise, many companies are exploring the technology's potential and attracting new users. Predictions indicate exponential growth in the blockchain space in the coming years \cite{noauthor_global_nodate}. However, this growth presents a challenge due to the limited scalability offered by current blockchains. For instance, Ethereum, one of the most popular blockchains, currently faces a transaction processing limit of only 15 transactions per second (TPS).
 
-What kind of problem do you adress? Which issues do you try to solve? What solution do you propose? What is your goal?
-'This thesis describes an approach to combining X and Y... The aim of this work is to...'
+The necessity for blockchain scalability has been recognized by the community, especially evident when Ethereum transaction fees reached an average of \$70 in 2020\footnote{\url{https://ycharts.com/indicators/ethereum_average_transaction_fee}} due to the high volume of submitted transactions. This issue is not unique to Ethereum, as other blockchains also experience similar problems. Vitalik Buterin's "Scalability Trilemma" posits that achieving scalability, security, and decentralization simultaneously in a distributed system, such as blockchains, is a challenging task\footnote{\url{https://ethereum.org/en/roadmap/vision/}}.
 
-\section{Scope\label{sec:scope}}
+\section{Objective}\label{sec:objective}
 
-Here you should describe what you will do and also what you will not do. Explain a little more specific than in the objective section. 'I will implement X on the platforms Y and Z based on technology A and B.'
+The objective of this thesis is to address the issue of limited scalability in the blockchains. A crucial factor that constrains the number of transactions in a block is the gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction consumes gas, and the gas limit determines the maximum amount of gas that can be utilized in a block.
 
-Conclude this subsection with an image describing 'the big picture'. How does your solution fit into a larger environment? You may also add another image with the overall structure of your component.
+The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. However, it can also hinder the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
 
-'Figure \ref{fig:intro} shows Component X as part of ...' 
-\\
-\begin{figure}[htb]
-  \centering
-  \includegraphics[width=9cm]{intro_example.pdf}\\
-  \caption{Component X}\label{fig:intro}
-\end{figure}
+Enhancing the blockchain's throughput is also directly impacted by the block size, as increasing its size can increase the system's capacity. Nonetheless, a thorough analysis of the consequences of enlarging the block size is necessary, as arbitrary increases can lead to negative effects. For instance, large block sizes may cause network congestion, slower propagation speeds, and an increase in the number of stale blocks—blocks that are not included in the longest chain due to conflicts or concurrency—posing potential security risks \cite{gervais_security_2016}.
 
-\section{Outline\label{sec:outline}}
+This thesis proposes a solution to the scalability problem by introducing a new block-chain layer that lives on top of the original blockchain. This is called a second-layer solution. This second layer is entirely run by nodes that are not involved in computing or verifying the layer 1 transaction. This way we are not constrained by limitations imposed by the chain, but we are free to use a lot more computational power and inject into the blockchain only the result of the computations. This way we should be able to achieve higher throughput and lower transaction fees. 
 
-The 'structure' or 'outline' section gives a brief introduction into the main chapters of your work. Write 2-5 lines about each chapter. Usually diploma thesis are separated into 6-8 main chapters. 
+
+\section{Structure\label{sec:structure}}
+
+This section gives a brief introduction into the main chapters of this thesis. 
 \\
 \\
-\noindent This example thesis is separated into 7 chapters.
-\\
-\\
-\textbf{Chapter \ref{cha:chapter2}} is usually termed 'Related Work', 'State of the Art' or 'Fundamentals'. Here you will describe relevant technologies and standards related to your topic. What did other scientists propose regarding your topic? This chapter makes about 20-30 percent of the complete thesis.
+\textbf{Chapter \ref{cha:chapter2}} analyzes the current state of the art in the field of blockchain scalability and presents the most relevant related work including the project this thesis is based on.
 \\
 \\
 \textbf{Chapter \ref{cha:chapter3}} analyzes the requirements for your component. This chapter will have 5-10 pages.
