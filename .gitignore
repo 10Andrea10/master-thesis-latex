@@ -1,8 +1,7 @@
-# TODO: remove this line ignoring the images
-img/
 
 # LaTeX pdf
 main.pdf
+guide.pdf
 
 # Created by https://www.toptal.com/developers/gitignore/api/osx,latex,windows,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=osx,latex,windows,visualstudiocode
