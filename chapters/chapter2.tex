@@ -17,6 +17,7 @@ The general followed path to scale the blockchain is to use a Layer 2 solution. 
 \footnotetext{\url{https://medium.com/token-terminal/a-primer-on-ethereum-l2-scaling-techniques-17ac437891b1}}
 
 \subsection{Zk-Rollups}
+\label{sec:2_zkRollups}
 Zk-Rollups are a Layer 2 solution that uses zero-knowledge proofs to move and execute the computation off-chain. When the computation is done the results and a proof of verifiable correct computation are sent back to the blockchain smart contract. The proof is then verified by the smart contract and the results are stored on the blockchain only if the proof is verified \cite{tyagi_study_2021}.
 
 Figure \ref{fig:2_zkRollup_schema} shows the general schema of a Zk-Rollup. The user sends a transaction to the off-chain node. The node executes the transaction batch and sends the results and a proof to the smart contract. The smart contract verifies the proof and stores the new account balance list.
@@ -75,5 +76,22 @@ Many are the missing parts of the project. The most important ones are:
   \item Withdraw entrypoint.
   \item Signature check inside the ZoKrates program.
   \item Double spending problem.
+  \item Optimization of the system.
 \end{itemize}
 A benchmarking study with single and multiple nodes is also missing, along with a security analysis and a cost comparison analysis with other scaling solutions.
+
+\section{Other Zk-Rollup implementations}
+There are many other Zk-Rollup implementations, most of them are for the Ethereum blockchain. The one developed in \cite{dinh_implementation_2023} has a similar approach to the ADSP project implementation, but they didn't consider the scaling of the system and the transfer of multiple types of tokens. The Polygon solution, Polygon Zero\footnote{\url{https://polygon.technology/blog/introducing-plonky2}}, allows transactions to be executed on L2, and the proof of the correct execution is done in parallel by all the nodes participating to the network: they combine both STARK and SNARK to achieve this, differently than the approach presented for this thesis.
+
+\section{Reviews of Zk-Rollup}
+Some studies have been done about the feasibility and the performance of the Zk-Rollup system. \cite{capko_state_2022} Gives an overview of the different zero-knowledge proofs that are mostly used. The ZoKrates Toolbox, the one used by the ADSP project, uses SNARK which is a zero-knowledge proof system having the disadvantage of requiring an initial trusted setup phase that can be a problem for some applications, compared for instance to Transparent zk-SNARK \cite{zhou_overview_2022}. \cite{neiheiser_practical_2023} Explains how the L2 solutions can face a big bottleneck in the scalability of the system due to the slow L1. All the L2 solutions analyzed in this study are limited by the low throughput of the L1 that doesn't allow them to reach the theoretical throughput of the L2. This may be a problem for some applications, in fact the idea of L3 has been proposed in \cite{starkware_fractal_2021}, to overcome this problem.
+
+\section{Other L2 solutions}
+There are some other main solutions to scale blockchains on a Layer 2. Here we will see briefly some of them.
+
+Plasma: Plasma is a framework for creating child chains or sidechains that can handle a large number of transactions off-chain, while still being anchored to the main blockchain for security. Plasma chains can process transactions more quickly and at lower fees, but require a period of time during which watchers must be able to call for a dispute resolution over a possible fraudulent transaction \cite{thibault_blockchain_2022}. An example of network using Plasma was the OMG Network \footnote{\url{https://docs.omg.network}}.
+
+State Channels: State channels are off-chain payment channels that allow users to transact with each other directly without needing to interact with the main blockchain. State channels enable fast, low-cost transactions and can be used for various use cases such as micropayments, gaming, and more \cite{negka_blockchain_2021}. Perun is an example of a state channel implementation \footnote{\url{https://perun.network/wp-content/uploads/Perun2.0.pdf}}.
+
+
+Optimistic Rollups: Optimistic Rollups are a type of rollup that assumes transactions are valid by default and only requires verification in case of a dispute. This allows for faster and more efficient transactions, with the added security of the main blockchain as the ultimate arbiter in case of disputes \cite{thibault_blockchain_2022}.

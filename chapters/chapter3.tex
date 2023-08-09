@@ -16,16 +16,20 @@ This research question is a key concept to make the system usable in a real worl
 \section{Proof of concept of the Zk-Rollup system applied to a NFT Marketplace}
 The last area to explore is guided by the question: \textit{How can the Zk-Rollup system be applied to a real world application?}
 
-The application chosen for this proof of concept is a NFT Marketplace. It has been chosen because the transfers involve tokens and the ownerships of the NFTs through an IPFS system. The NFTs must be handled by the application without sacrificing the decentralization of the system. This type of marketplace has also a fluctuating number of users and transactions, involving the same NTFT object, so it is a valid example to test the system applied on a real world application.
+The application chosen for this proof of concept is a NFT Marketplace. It has been chosen because the transfers involve tokens and the ownerships of the NFTs through an IPFS system. The NFTs must be handled by the application without sacrificing the decentralization of the system. This type of marketplace has also a fluctuating number of users and transactions, involving the same NFT object, so it is a valid example to test the system applied on a real world application.
 
 \section{Smart Contracts Requirements}
 
-The smart contracts and layer 2 programs should prioritize system extensibility and modularity. They must be designed to efficiently handle a large number of users and transactions. However, when developing using smart contracts and zk proofs, certain constraints must be taken into account.
+The smart contracts and layer 2 programs should prioritize system extensibility and modularity. They must be designed to efficiently handle a large number of users and transactions. However, when developing using smart contracts and rollup proofs, certain constraints must be taken into account.
 
-\subsection{Computation Gas Limit}
+\subsection{Computation Gas Limit \label{subsec:gasLimit}}
 
 The computations executed within a smart contract are subject to a gas limit, a value set by the blockchain. The gas limit restricts the amount of computation a smart contract can perform in a transaction, preventing infinite loops and limiting computation within a single transaction. While users can set the gas limit when sending a transaction, it cannot exceed the maximum gas limit set by the blockchain. If the gas limit is reached during transaction execution, the transaction is reverted, and the user loses the gas used for computation. Currently, the Tezos blockchain sets a gas limit of 1040000 gas units for transactions\footnote{\url{https://mainnet.api.tez.ie/chains/main/blocks/4001570/context/constants}}.
 
 \subsection{Storage Read Limit}
 
 The rollup smart contract is responsible for storing registered accounts, balances, and associated tokens within the rollup system. While there is no specific predefined limit on the storage size, it becomes a critical factor during entrypoint execution. Upon each entrypoint call, the contract and its storage are deserialized for use by the Michelson interpreter. To avoid excessive time consumption and reaching the gas limit, it's crucial to keep the contract's storage as compact as possible. If the storage becomes too large, the contract may become unusable due to the gas limit being reached before the contract can be deserialized. A recommended solution offered by Tezos is to utilize big maps for storing data. Big maps are special maps that are only deserialized when accessed, and only the required data is loaded, allowing for more efficient storage management. However, it's important to note that iterating over big maps or determining their size is not directly supported.
+
+\section{Layer 2 Requirements}
+
+\todo[inline]{Talk about hardware requirements, execution time, etc.}

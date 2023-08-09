@@ -1,37 +1,69 @@
-\chapter{Concept\label{cha:chapter4}}
-This chapter introduces the architectural design of Component X. The component consists of subcomponent A, B and C.
+\chapter{Design\label{cha:chapter4}}
+This chapter presents the architectural design choices of the Rollup System. The Rollup System comprises Layer 1 components and Layer 2 components. The Layer 1 components encompass the Rollup smart contracts, while the Layer 2 components consist of the rollup programs and Web servers.
 
-In the end of this chapter you should write a specification for your solution, including interfaces, protocols and parameters.
-
-\section{Sub-component A\label{sec:conceptsuba}}
-The concept chapter provides a high-level explanation of your solution. Try to explain the overall structure with a picture. You can also use UML sequence diagrams for explanation.
-
-Figure \ref{fig:aliceandbob} illustrates the situation between Alice and Bob. (sequence diagram from www.websequencediagrams.com)
+\section{Layer 1\label{sec:designlayer1}}
+Layer 1 primarily consists of the rollup smart contracts. These contracts are divided into verifier contracts and a manager contract. The verifier contracts handle rollup proof verification, while the manager contract stores the rollup state and serves as a gateway, invoking the verifiers for proof verification.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[width=9cm]{uml_seq_example.png}\\
-  \caption{Alice and Bob}
-  \label{fig:aliceandbob}
+  \includegraphics[width=9cm]{4_Architecture-L1_general.png}
+  \caption{Layer 1 Overview}
+  \label{fig:layer1overview}
 \end{figure}
 
-\section{Sub-component B\label{sec:conceptsubb}}
+This modular approach enables independent upgrades of verification contracts, addressing scenarios like bugs in L2 programs. New programs may require updated verification keys, leading to deployment of corresponding verifier contracts. By having dedicated entrypoints, the rollup contract can be updated to use new verifier contracts while leaving others unaffected, necessitating only one deployment.
 
-Lorem Ipsum...
+Another advantage of separation is reduced gas consumption: each entrypoint loads only the necessary contract code into memory. With separate contracts, the rollup contract loads only the required verifier contract for proof verification, optimizing gas usage.
 
-\section{Proposed API\label{sec:conceptapi}}
+\subsection{Manager Contract\label{sec:designrollupcontract}}
+The Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it indirectly stores transaction history in the blockchain.
 
-Lorem Ipsum...
+Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant verifiers, verifying them, and updating storage with new state. This process is illustrated in sequence diagram \ref{fig:layer1sequencediagram}.
 
-\section{Layer X\label{sec:conceptlayerx}}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=6cm]{4_Architecture-Sequence_general_L1.png}
+  \caption{Layer 1 Sequence Overview}
+  \label{fig:layer1sequencediagram}
+\end{figure}
 
-Lorem Ipsum...
+\paragraph{State}
+Expanding the state defined in Section \ref{sec:2_zkRollups}, the Rollup System's state includes:
+\begin{itemize}
+  \item \textbf{Accounts Root}: Root of the Merkle Tree containing registered accounts.
+  \item \textbf{Balances Root}: Root of the Merkle Tree containing account balances.
+  \item \textbf{User Map}: Map of registered users, each represented by a user index, public key, and balance.
+\end{itemize}
 
-\section{Interworking of X and Y\label{sec:conceptinter}}
+\paragraph{Entrypoints}
+Multiple entrypoints optimize gas usage by loading only necessary code. Entrypoints for minimal functionality are:
+\begin{itemize}
+  \item \textbf{Register}: Register a new user.
+  \item \textbf{Deregister}: Deregister a user.
+  \item \textbf{Deposit}: Deposit funds.
+  \item \textbf{Withdraw}: Withdraw funds.
+  \item \textbf{Rollup}: Submit a rollup proof.
+\end{itemize}
 
-Lorem Ipsum...
+\subsection{Verifier Contracts\label{sec:designverifiercontracts}}
+Verifier contracts validate rollup proofs. Each handles a specific proof type, invoked by the manager contract.
 
-\section{Interface Specification\label{sec:intspec}}
+\textbf{Proof}: A structure with proof keys and program inputs.
+\newline These contracts have no storage; they verify proofs through an entrypoint. A challenge arises with verification key sizes: large keys can hinder deployability and execution due to gas limits, as discussed in Section \ref{subsec:gasLimit}. 
 
-Lorem Ipsum...
+\section{Layer 2\label{sec:designlayer2}}
+Layer 2 consists of rollup programs and a Web server. Rollup programs generate zero-knowledge proofs, while the Web server exposes APIs for receiving transaction batches to be executed in a zero-knowledge context and sends proofs to the manager contract.
 
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=13cm]{4_Architecture-L2_general.png}
+  \caption{Layer 2 Overview}
+  \label{fig:layer2overview}
+\end{figure}
+
+\subsection{Web Server\label{sec:designwebserver}}
+The Web server provides APIs for zero-knowledge transaction execution. It calls rollup programs and awaits their completion, sending resulting proofs to the manager contract.
+
+No specific requirements apply to the Web server, apart from scalability based on transaction volume and avoiding system bottlenecks.
+
+\subsection{Rollup Programs\label{sec:designrollupprograms}}
