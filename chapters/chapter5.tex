@@ -1,6 +1,12 @@
 \chapter{Implementation\label{cha:chapter5}}
 
-This chapter describes the implementation of component X. Three systems were chosen as reference implementations: a desktop version for Windows and Linux PCs, a Windows Mobile version for Pocket PCs and a mobile version based on Android. 
+This chapter presents the implementation of the Rollup System together with the technologies used, the structural choices made and the challenges faced during the development of the project.
+
+\section{Technologies\label{sec:technologies}}
+
+\section{Overview of the base Rollup System}
+
+\todo[inline]{Create a sequence diagram showing the interaction between the different components of the Rollup System. Say that only the inputs of the programs change, the rest is almost the same.}
 
 \section{Completing the Scale Tezos Blockchain with Zk-Rollups project}
 This section explains the implementation of the remaining features of the \textit{Scale Tezos Blockchain using Zk-Rollups} project. Since some other already-implemented features have been modified, this section also explains the changes made to those features to integrate the new changes made
@@ -61,15 +67,25 @@ No relevant overhead is added to the complexity of the rollup execution because 
 
 \subsection{Registration and Deregistration}
 
-This section describes the registration and deregistration process of a user. The main idea is to insert and remove users from the storage, leaving empty fake users in case of a deregistration. This is made in order to preserve the position of the users inside the storage.
-\label{subsec:registration}
+This section describes the registration and deregistration process of a user. The main idea is to insert and remove users from the storage, leaving empty users in case of a deregistration. This is made in order to preserve the position of the users inside the storage to be able to use the existent indexes.
 
-To register a new user, two Merkle Trees must be recalculated with the new user's public key, balance and nonce. This computation is done inside a Zokrates program that returns the new root hashes of the Merkle Trees. The new root hashes are then passed to the contract that updates the storage with the new root hashes. The Zokrates program expects the exact position where to put the new data of the new user. This position is calculated from the external manager that can contact an rpc and compute the first empty slot inside the Big Map of the storage. The register process checks if at the specified position the account has an empty key, balance and nonce set to 0. After the initial checks it sets the nonce at the value of 1, the balance at the value of 0 and the public key at the value of the public key of the user.
+Tezos allows the use of optional types. This means that a value can be set to None, meaning that the value is not set. This is useful when we want to remove a user from the storage. The new storage Big Map representing the users registered is now composed by:
+\begin{itemize}
+	\item \textbf{index}: a natural number representing the index of the user inside the storage;
+	\item \textbf{mutez balance}: the balance of the user;
+	\item \textbf{nonce}: the nonce of the user;
+	\item \textbf{public key}: the public key of the user.
+\end{itemize}
+
+Since the generation of merkle trees is a very expensive operation, registrations and deregistrations are computed inside dedicated zokrates programs. 
+
+\subsection{Registration\label{subsec:registration}}
+
+To register a new user, the two Merkle Trees must be recalculated inserting the new user's public key, balance and nonce. This computation is done inside a Zokrates program that returns the new root hashes of both Merkle Trees. The new root hashes are then passed to the contract that updates the storage setting the new roots and the new user. The Zokrates program expects the exact position where to put the new data of the new user. This position is calculated from the external manager that can contact an rpc and compute the first empty slot inside the Big Map of the storage. The register process checks if at the specified position the account has an empty key, balance and nonce set to 0. After the initial checks it sets the nonce at the value of 1, the balance at the value of 0 and the public key at the value of the public key of the user.
 
 \subsection{Deregistration}
 
-The deregistration process is similar to the registration process described at \ref{subsec:registration}. The 
-
+The deregistration process is similar to the registration process described at \ref{subsec:registration}. The Zokrates deregister program takes as input the index of the user to be deregistered and the other standard inputs. It sets the public key of the user to None, the balance to 0 and the nonce to 0. The deregister program returns the new root of both Merkle Trees. The manager smart contract then updates the storage setting the new roots and deleting the user at the specified index. 
 
 \section{Project Structure\label{sec:projectstructure}}
 
