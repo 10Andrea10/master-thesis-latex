@@ -30,7 +30,7 @@ Figure \ref{fig:2_zkRollup_schema} shows the general schema of a Zk-Rollup. The 
 \end{figure}
 
 \section{ADSP Project: \textit{Scale Tezos Blockchain with Zk-Rollups}}
-During the Winter Semester 2022/2023 at the University of Berlin, I worked on a project with the ADSP (Advanced Distributed Systems Prototype) group. The goal of this project was to scale the Tezos blockchain with Zk-Rollups using the ZoKrates toolbox. ZoKrates is a toolbox for zkSNARKs on Ethereum: it allows developers to write zero-knowledge proofs in a high-level programming language and generate trusted setup parameters and zero-knowledge proofs.\footnote{\url{https://github.com/ZoKrates/ZoKrates}}
+During the Winter Semester 2022/2023 at the University of Berlin, I worked on a project with the ADSP (Advanced Distributed Systems Prototype) group. The goal of this project was to scale the Tezos blockchain with Zk-Rollups using the ZoKrates toolbox. ZoKrates is a toolbox for zkSNARKs on Ethereum: it allows developers to write zero-knowledge proofs in a high-level programming language and generate trusted setup parameters and zero-knowledge proofs \cite{eberhardt_zokrates_2018}.
 
 \begin{figure}[ht]
   \centering
@@ -79,6 +79,9 @@ Many are the missing parts of the project. The most important ones are:
   \item Optimization of the system.
 \end{itemize}
 A benchmarking study with single and multiple nodes is also missing, along with a security analysis and a cost comparison analysis with other scaling solutions.
+
+\todo[inline]{Explain more the state of the art of the project.}
+\todo[inline]{Generate a sequence diagram illustrating the interaction between the various components of the Rollup System. Note that only the input of the programs changes; the remainder remains largely consistent.}
 
 \section{Other Zk-Rollup implementations}
 There are many other Zk-Rollup implementations, most of them are for the Ethereum blockchain. The one developed in \cite{dinh_implementation_2023} has a similar approach to the ADSP project implementation, but they didn't consider the scaling of the system and the transfer of multiple types of tokens. The Polygon solution, Polygon Zero\footnote{\url{https://polygon.technology/blog/introducing-plonky2}}, allows transactions to be executed on L2, and the proof of the correct execution is done in parallel by all the nodes participating to the network: they combine both STARK and SNARK to achieve this, differently than the approach presented for this thesis.
