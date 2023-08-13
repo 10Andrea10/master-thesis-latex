@@ -131,10 +131,7 @@ The second phase is initiated by a Web Server that detects a considerable accumu
 
 
 \section{Optimization}
-
-\section{Project Structure\label{sec:projectstructure}}
-
-The implementation is separated into 2 distinguished eclipse projects as depicted in figure \ref{fig:projects}.
+During a preliminary testing phase of the Layer 2 system immediately emerged a problem when increasing the number of user from 4 to 8. The problem was the compute resources needed to compile and run the ZoKrates programs: with only 8 users the compilation of the programs required more than 100GB of RAM. Due to the structure of the merkle trees generation, only powers of 2 can be taken as number of users. The 
 
 \begin{figure}[htb]
   \centering

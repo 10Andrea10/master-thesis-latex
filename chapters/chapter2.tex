@@ -78,10 +78,29 @@ The ZoKrates program was partially developed, including:
     \item Verification of account inclusion in the rollup system;
     \item Verification of sufficient balance in sender account;
     \item Transaction execution;
-    \item Generation of new balance root, balance list, and proof.
+    \item Generation of new balance merkle tree root, balance list, and proof.
 \end{itemize}
 
-\subsection{Pending Components}
+The generation of the Merkle tree root is accomplished through the algorithm described below. This process utilizes the SHA2-256 hash function with automatic zero-padding. The algorithm incorporates pre-calculated values for the Merkle tree depth and the number of leaf nodes.
+
+\textbf{Algorithm 1: Merkle Tree Root Generation}
+\begin{lstlisting}[language=Python]
+for i in 0...TREE_DEPTH {
+  step_size = 2 ** (i + 1)
+  step_number = LEAFS_NUM / step_size
+  for j in 0...step_number {
+    leftIndex = j * step_size
+    rightIndex = leftIndex + step_size / 2
+    leafs[leftIndex] = hash(
+        leafs[leftIndex],
+        leafs[rightIndex]
+    )
+  }
+}
+return leafs[0]
+\end{lstlisting}
+
+\subsection{Pending Components\label{subsec:pendingcomponents}}
 Numerous aspects of the project remain unfinished, including:
 \begin{itemize}
   \item Registration entrypoint;
@@ -95,7 +114,6 @@ Numerous aspects of the project remain unfinished, including:
 Furthermore, the project lacks a benchmarking study, a security analysis, and a cost comparison with alternative scaling solutions and Layer 1.
 
 \todo[inline]{Provide a more comprehensive analysis of the project's state of the art.}
-\todo[inline]{Generate a sequence diagram depicting the interaction among various Rollup System components. Note that while input changes, the remainder remains mostly consistent.}
 
 \section{Other Zk-Rollup Implementations}
 Numerous Zk-Rollup implementations exist, particularly for Ethereum. The implementation discussed in \cite{dinh_implementation_2023} shares similarities with the ADSP project's approach. However, it lacks considerations for system scaling and handling multiple token types. Another example is Polygon Zero\footnote{\url{https://polygon.technology/blog/introducing-plonky2}}, which facilitates parallel execution of transactions on L2. This system blends STARK and SNARK, differing from the approach outlined in this thesis.
