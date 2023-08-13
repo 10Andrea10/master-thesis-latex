@@ -1,14 +1,14 @@
 \chapter{Design\label{cha:chapter4}}
 This chapter presents the architectural design choices of the Rollup System. The Rollup System comprises Layer 1 components and Layer 2 components. The Layer 1 components encompass the Rollup smart contracts, while the Layer 2 components consist of the rollup programs and Web servers.
 
-\section{Layer 1\label{sec:designlayer1}}
+\section{Layer 1\label{sec:designLayer1}}
 Layer 1 primarily consists of the rollup smart contracts. These contracts are divided into verifier contracts and a manager contract. The verifier contracts handle rollup proof verification, while the manager contract stores the rollup state and serves as a gateway, invoking the verifiers for proof verification.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[width=9cm]{4_Architecture-L1_general.png}
   \caption{Layer 1 Overview}
-  \label{fig:layer1overview}
+  \label{fig:Layer1overview}
 \end{figure}
 
 This modular approach enables independent upgrades of verification contracts, addressing scenarios like bugs in L2 programs. New programs may require updated verification keys, leading to deployment of corresponding verifier contracts. By having dedicated entrypoints, the rollup contract can be updated to use new verifier contracts while leaving others unaffected, necessitating only one deployment.
@@ -18,13 +18,13 @@ Another advantage of separation is reduced gas consumption: each entrypoint load
 \subsection{Manager Contract\label{sec:designrollupcontract}}
 The Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it indirectly stores transaction history in the blockchain.
 
-Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant verifiers, verifying them, and updating storage with new state. This process is illustrated in sequence diagram \ref{fig:layer1sequencediagram}.
+Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant verifiers, verifying them, and updating storage with new state. This process is illustrated in sequence diagram \ref{fig:Layer1sequencediagram}.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=6cm]{4_Architecture-Sequence_general_L1.png}
+  \includegraphics[width=10cm]{4_Architecture-Sequence_general_L1.png}
   \caption{Layer 1 Sequence Overview}
-  \label{fig:layer1sequencediagram}
+  \label{fig:Layer1sequencediagram}
 \end{figure}
 
 \paragraph{State}
@@ -51,14 +51,14 @@ Verifier contracts validate rollup proofs. Each handles a specific proof type, i
 \textbf{Proof}: A structure with proof keys, public program inputs and program outputs.
 \newline These contracts have no storage; they verify proofs through an entrypoint. A challenge arises with verification key sizes: large keys can hinder deployability and execution due to gas limits, as discussed in Section \ref{subsec:gasLimit}. 
 
-\section{Layer 2\label{sec:designlayer2}}
+\section{Layer 2\label{sec:designLayer2}}
 Layer 2 consists of rollup programs and a Web server. Rollup programs generate zero-knowledge proofs, while the Web server exposes APIs for receiving transaction batches to be executed in a zero-knowledge context and sends proofs to the manager contract.
 
 \begin{figure}[htb]
   \centering
   \includegraphics[width=13cm]{4_Architecture-L2_general.png}
   \caption{Layer 2 Overview}
-  \label{fig:layer2overview}
+  \label{fig:Layer2overview}
 \end{figure}
 
 \subsection{Web Server\label{sec:designwebserver}}
