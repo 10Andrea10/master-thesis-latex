@@ -1,6 +1,13 @@
-\chapter{Implementation\label{cha:chapter5}}
+\chapter{Implementation \label{cha:chapter5}}
 
-This chapter presents the implementation details of the Rollup System, including the chosen technologies, structural decisions, and the encountered development challenges.
+This chapter describes the implementation details, including the structural decisions and  encountered development challenges, of the Rollup System based on the system described at \ref{sec:2_adspProject}. Figure \ref{fig:fig:5_drawings-final_rollup_archotecture.png} shows the system's new architecture, clearly distinguishing Layer 1 and Layer 1 components and showing the interactions between them.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\columnwidth]{5_drawings-final_rollup_architecture.png}
+	\caption[Scaling Solutions]{Architecture of the Rollup System.}  
+	\label{fig:fig:5_drawings-final_rollup_archotecture.png}
+  \end{figure} 
 
 \section{Technologies\label{sec:technologies}}
 
@@ -8,8 +15,50 @@ The blockchain components are constructed utilizing the Tezos blockchain\footnot
 
 To engineer the Layer 2 components, web servers are developed using nodejs and Typescript running in Docker containers. The implementation of Rollup programs is accomplished through the utilization of the ZoKrates toolbox\footnote{\url{https://github.com/ZoKrates/ZoKrates}}, a comprehensive zk-SNARKs toolkit designed to facilitate the creation of verifiable computation programs.
 
+The interaction between the Layer 2 and Layer 1 is made possible through the utilization of the Taquito\footnote{\url{https://tezostaquito.io/}} library, a TypeScript library that provides a simple interface for interacting with the Tezos blockchain.
+
 Those technologies were already decided at the time of the project's inception, as they were the most suitable for the project's objectives. The Tezos blockchain was chosen due to its easy development and deployment, as well as the missing Layer 2 solutions.
 \todo[inline]{Write why ZoKrates was chosen}
+
+\section{Repeated Transactions Attack}
+\label{sec:repeatedtransactionsattack}
+
+To mitigate the risk of an attacker initiating repeated transactions, the nonce mechanism comes into play: each account holds a nonce, stored on Layer 1. When a transaction is submitted, it must include a nonce incremented by one, thereby facilitating the validation of transaction execution history.
+
+Within the ZoKrates environment, proving the usage of updated balances and nonces necessitates computation of a merkle tree for the provided balance and nonce lists. This implies calculating two full binary trees, thereby increasing complexity. A workaround involves concatenating and hashing balances and nonces for individual users, forming a single merkle tree of these concatenated values. This approach incurs only the complexity of the concatenation function, involving a number of hashes equivalent to the number of accounts, ultimately substantiating the updated balances and nonces.
+
+Changes were introduced to the rollup execution to incorporate the computation of new nonces alongside new balances. It's essential that ZoKrates receives transactions ordered by nonce for each user. While transactions from diverse users can be received, those from a single user must be ordered by nonce. The algorithm for verifying transaction nonces and calculating new nonces is as follows:
+\begin{itemize}
+	\item Initialize \textit{nonce\_array} and \textit{balance\_array}, with the current nonces and balances of all users;
+	\item Iterate through the transactions:
+	\begin{itemize}
+		\item Check in \textit{nonce\_array} if the transaction nonce equals the sender's nonce plus one;
+		\item If true:
+		\begin{itemize}
+			\item Increment senders's nonce in array \textit{nonce\_array};
+			\item Decrement sender's balance in array \textit{balance\_array};
+			\item Increment receiver's balance in array \textit{balance\_array};
+			\item Proceed to next transaction;
+		\end{itemize}
+		\item If false:
+		\begin{itemize}
+			\item Fail program execution.
+		\end{itemize}
+    \end{itemize}
+\end{itemize}
+
+This approach accommodates multiple transactions from the same user, thwarting duplicate transaction execution.
+
+The rollup execution complexity experiences minimal augmentation, as the nonce check coincides with balance calculation in the same loop, facilitating direct array access and preserving an O(n) complexity.
+
+\section{Hash Function}
+
+Hash functions play a crucial role in the Rollup execution process. They are extensively used for various tasks such as creating Merkle Trees, concatenating balances and nonces, and verifying signatures. One widely supported hashing function in this context is SHA-256. The initial implementation of the Rollup system employed the SHA-256 function provided by the ZoKrates toolbox. However, as demonstrated in Section \ref{subsec:6_hashfunc}, the use of this function introduces a significant number of constraints to the compiled Zokrates program, resulting in exponential complexity during execution. This inefficiency arises from the fact that classical cryptographic schemes predominantly consist of boolean operations, which become inefficient within a ZK-SNARK circuit \cite{belles-munoz_twisted_2021}.
+
+A more recent hash function, known as Poseidon \cite{grassi_poseidon_nodate}, has been developed with a specific focus on efficiency within zk-SNARK circuits. By transitioning the Rollup system's hash function from SHA-256 to Poseidon, the number of constraints added to the program has been reduced by a factor of 100.
+
+Notably, the adoption of the Poseidon hash function necessitates a revision of the system storage. While SHA-256 operates on 256-bit blocks, Poseidon operates on field sizes defined by the underlying elliptic curve. Additionally, considering the process of signature verification, the payload of a signed message must be hashed to fit a predetermined size prior to verification. In the case of Zokrates signature verification, which expects 512 bits of data, padding must be added after hashing the payload with Poseidon. This is due to the fact that the bls12\_381 curve on ZoKrates operates on a 254-bit field size. To meet the expected size, a padding of 258 bits, filled with zeros, is appended to the right of the payload's hash.
+
 
 \section{Enhancing the Scale Tezos Blockchain with Zk-Rollups Project}
 This section outlines the implementation of the remaining components in the \textit{Scale Tezos Blockchain using Zk-Rollups} project. Additionally, modifications made to the existing features are explained to accommodate these new enhancements.
@@ -39,29 +88,7 @@ With scalability as a focal point, the storage structure was revamped to handle 
 	\item A list of 8 scalar values representing the Merkle Tree root of the accounts' balances concatenated with their respective nonces.
 \end{itemize}
 
-Details on the nonce mechanism and the Merkle Tree roots are elucidated in Section \ref{subsec:repeatedtransactionsattack}.
-
-\subsection{Repeated Transactions Attack}
-\label{subsec:repeatedtransactionsattack}
-
-To mitigate the risk of an attacker initiating repeated transactions, the nonce mechanism comes into play: each account holds a nonce, stored on Layer 1. When a transaction is submitted, it must include a nonce incremented by one, thereby facilitating the validation of transaction execution history.
-
-Within the ZoKrates environment, proving the usage of updated balances and nonces necessitates computation of a merkle tree for the provided balance and nonce lists. This implies calculating two full binary trees, thereby increasing complexity. A workaround involves concatenating and hashing balances and nonces for individual users, forming a single merkle tree of these concatenated values. This approach incurs only the complexity of the concatenation function, involving a number of hashes equivalent to the number of accounts, ultimately substantiating the updated balances and nonces.
-
-Changes were introduced to the rollup execution to incorporate the computation of new nonces alongside new balances. It's essential that ZoKrates receives transactions ordered by nonce for each user. While transactions from diverse users can be received, those from a single user must be ordered by nonce. The algorithm for verifying transaction nonces and calculating new nonces is as follows:
-\begin{itemize}
-	\item Generate a new array \textit{X} by copying the old nonce array;
-	\item Iterate through the transactions:
-	\item \begin{itemize}
-		\item Check in \textit{X} if the transaction nonce for the sender equals the user's nonce plus one;
-		\item If true, increment the user's nonce in array \textit{X} and proceed;
-		\item If false, terminate execution.
-    \end{itemize}
-\end{itemize}
-
-This approach accommodates multiple transactions from the same user, thwarting duplicate transaction execution.
-
-The rollup execution complexity experiences minimal augmentation, as the nonce check coincides with balance calculation in the same loop, facilitating direct array access and preserving an O(n) complexity.
+Details on the nonce mechanism and the Merkle Tree roots are elucidated in Section \ref{sec:repeatedtransactionsattack}.
 
 \subsection{ZoKrates Native Execution}
 The execution of ZoKrates programs demands substantial resources, as evidenced in Section \ref{sec:benchmarks}. As a consequence, executing ZoKrates programs is allocated to a distinct server. This server operates as an independent entity, called upon by the primary Web Server. This strategy serves the dual purpose of optimizing resource allocation and facilitating scalability. Specifically, the architecture enables the isolation of resource-intensive tasks to a separate server, allowing efficient utilization and the ability to scale individual components as needed.

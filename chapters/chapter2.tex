@@ -29,12 +29,12 @@ Figure \ref{fig:2_zkRollup_schema} outlines the Zk-Rollup paradigm. An user init
   \label{fig:2_zkRollup_schema}
 \end{figure}
 
-\subsection{ZoKrates}
+\subsection{ZoKraStes}
 ZoKrates is a toolbox for zkSNARKs on Ethereum: it allows developers to write zero-knowledge proofs in a high-level programming language and generate trusted setup parameters and zero-knowledge proofs \cite{eberhardt_ZoKrates_2018}.
 
 \todo[inline]{explain ZoKrates}
 
-\section{ADSP Project: Scaling Tezos Blockchain with Zk-Rollups}
+\section{ADSP Project: Scaling Tezos Blockchain with Zk-Rollups \label{sec:2_adspProject}}
 In the Winter Semester 2022/2023 at the University of Berlin, I collaborated with the ADSP (Advanced Distributed Systems Prototype) group on a project. The project's objective was to scale the Tezos blockchain using Zk-Rollups through the ZoKrates toolbox.
 
 The group partially achieved the project's objectives, creating a proof of concept. The system architecture features Layer 1 and Layer 2 components: Layer 1 includes two smart contracts for state management and proof verification; Layer 2 encompasses a node executing transactions within the ZoKrates program, generating proofs for the smart contract. Figure \ref{fig:2_general_rollup_architecture} offers an overview of the entire system.
@@ -55,7 +55,7 @@ The Zk-Rollup execution process unfolds as follows:
     \item The ZoKrates executor processes the ZoKrates program with the transaction batch and the current state as input;
     \item The ZoKrates executor generates a proof and new balance list, transmitting them to the NodeJS server;
     \item The NodeJS server converts ZoKrates outputs into a Tezos-compatible format;
-    \item Converted outputs are dispatched to the Tezos Zk-Rollup smart contract;
+    \item Converted outputs are dispatched to the Tezos Zk-Rollup smart contract using Taquito, an external library;
     \item The smart contract forwards the proof to the verifier smart contract;
     \item The verifier smart contract verifies the proof, communicating the result to the contract;
     \item If the proof is verified, the new balance list is stored in the Zk-Rollup contract's blockchain storage.
