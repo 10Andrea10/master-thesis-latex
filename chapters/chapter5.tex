@@ -70,7 +70,7 @@ For every transaction, certain information needs to be returned: the sender's in
 
 Furthermore, this approach proves more advantageous when a single user initiates multiple transactions to the same recipient, as the sender's index and balance are only returned once.
 
-\subsection{Reducing Proof Size}
+\subsection{Proof Compression}
 
 ZoKrates allows operating on fields of size 254 bits. The proof itself is made up of entries in these fields, no matter the original type of value. Even a simple boolean or a 254-bit value gets represented using just one field entry. This applies to lists of changed indexes, balances, and nonces too. When returning the list of modified indexes, balances and nonces they will occupy a single field value for just 32 bit of information.
 
@@ -102,45 +102,16 @@ Another way to improve this is by concatenating all data into one bit array, and
 
 To get back the original values, the Smart Contract needs to decompress the data. At the moment, the ability to get data from field values as bytes is there, but the current SmartPy version lacks converting from Bytes to Nat. When that feature comes in, it wil be possible to restore original values from field values. The upcoming benchmarks will also account for the estimated cost of this value conversion.
 
-\subsection{Storage}
+\section{Storage}
 
-Initially, the storage was designed with the intention of accommodating a limited number of users, employing a standard Map. It encompassed the following elements:
-\begin{itemize}
-	\item A Map of accounts indexed by a natural number, containing:
-		\begin{itemize}
-			\item A public key;
-			\item A balance.
-		\end{itemize}
-	\item A list of 8 scalar values representing the Merkle Tree root of the accounts' public keys;
-	\item A list of 8 scalar values representing the Merkle Tree root of the accounts' balances.
-\end{itemize}
+Initially, the storage was designed with the intention of accommodating a limited number of users, employing a standard Map. Standard maps in Tezos are always deserialized at every contract execution, even if the elements of the map will not be used. This approach is suitable for debugging or where there is the need of iterating through the entire map without knowing its size. 
 
-With scalability as a focal point, the storage structure was revamped to handle a growing user base through the adoption of a Big Map. This alteration is pivotal, given that the Big Map is lazily deserialized\footnote{\url{https://tezos.gitlab.io/michelson-reference/\#type-big_map}}, negating the need for gas during contract calls to deserialize the entire accounts Map. The storage now comprises:
-\begin{itemize}
-	\item A Big Map of accounts indexed by a natural number, encompassing:
-		\begin{itemize}
-			\item A public key;
-			\item A balance;
-			\item A nonce.
-		\end{itemize}
-	\item A list of 8 scalar values representing the Merkle Tree root of the accounts' public keys;
-	\item A list of 8 scalar values representing the Merkle Tree root of the accounts' balances concatenated with their respective nonces.
-\end{itemize}
+With scalability as a focal point, the storage structure was updated to handle a growing user base through the adoption of a Big Map. This change is pivotal, due that the Big Map is lazily deserialized\footnote{\url{https://tezos.gitlab.io/michelson-reference/\#type-big_map}}, avoiding the waste of gas during contract calls to deserialize the entire accounts Map. It is, in fact, a dangerous issue, as the gas limit could be reached before the contract is deserialized, making it unusable as described in \ref{subsec:gasLimit}.
 
-Details on the nonce mechanism and the Merkle Tree roots are elucidated in Section \ref{sec:repeatedtransactionsattack}.
+\section{ZoKrates Native Execution}
+The execution of ZoKrates programs demands substantial resources, as evidenced in Section \ref{sec:benchmarks}. As a consequence, executing ZoKrates programs is allocated to a distinct server. This server operates as an independent entity, called upon by Web-Manager. This strategy serves the dual purpose of optimizing resource allocation and facilitating scalability. Specifically, the architecture enables the isolation of resource-intensive tasks to a separate server, allowing efficient utilization and the ability to scale individual components as needed.
 
-\subsection{ZoKrates Native Execution}
-The execution of ZoKrates programs demands substantial resources, as evidenced in Section \ref{sec:benchmarks}. As a consequence, executing ZoKrates programs is allocated to a distinct server. This server operates as an independent entity, called upon by the primary Web Server. This strategy serves the dual purpose of optimizing resource allocation and facilitating scalability. Specifically, the architecture enables the isolation of resource-intensive tasks to a separate server, allowing efficient utilization and the ability to scale individual components as needed.
-
-The primary server dispatches requests, inclusive of essential inputs sourced from the Manager smart contract, to the ZoKrates servers. These dedicated servers execute the ZoKrates programs, subsequently furnishing the results to the primary server. Notably, the utilization of a containerized environment for the ZoKrates server introduces challenges. The approach of running ZoKrates programs directly on the machine is chosen to mitigate the introduction of overhead stemming from OS-level virtualization, particularly relevant in scenarios involving pre-existing virtualized environments, such as cloud computing contexts. Figure \ref{fig:5_drawings-L2_technologies_ZoKrates_metal} illustrates the technologies of the new Layer 2 components.
-
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=0.7\columnwidth]{5_drawings-L2_technologies_ZoKrates_metal.png}
-	\caption[Scaling Solutions]{Technologies of the new Layer 2 components.}  
-	\label{fig:5_drawings-L2_technologies_ZoKrates_metal}
-  \end{figure} 
-
+The primary web server dispatches requests, including the needed inputs fetched from the Manager smart contract, to the ZoKrates servers. These dedicated servers execute the ZoKrates programs, returning the results to the primary server. Notably, the utilization of a containerized environment for the ZoKrates server introduces challenges. The approach of running ZoKrates programs directly on the machine is chosen to mitigate the introduction of overhead stemming from OS-level virtualization, particularly relevant in scenarios involving pre-existing virtualized environments, such as cloud computing contexts.
 
 \section{New Features Implementation}
 This section details the implementation of the new features of the project, including the problems encountered and the solutions devised.
@@ -193,68 +164,3 @@ The second phase is initiated by a Web Server that detects a considerable accumu
   The withdrawal initiation commences as users dispatch withdrawal requests to the Web Server. Subsequently, the Web Server retrieves the user's balance and nonce from the manager contract and generates withdrawal inputs for the dedicated ZoKrates program. This ZoKrates program orchestrates the computation of the new root hash for the merkle tree containing balances and nonces. This computation involves the subtraction of the user-specified amount. The computed new root hash is then relayed back to the Web Server. In turn, the Web Server invokes the \textit{receive\_withdrawal\_proof} entrypoint within the manager smart contract. This invocation encompasses the provision of the new root hash as a parameter.
   
   Within the manager contract, the merkle tree root hash undergoes an update, alongside adjustments to the user's balance and nonce. Subsequently, the requested sum is transferred to the user's account, finalizing the withdrawal process.
-  
-
-
-\section{Optimization}
-During a preliminary testing phase of the Layer 2 system immediately emerged a problem when increasing the number of user from 4 to 8. The problem was the compute resources needed to compile and run the ZoKrates programs: with only 8 users the compilation of the programs required more than 100GB of RAM. Due to the structure of the merkle trees generation, only powers of 2 can be taken as number of users. The 
-
-\begin{figure}[htb]
-  \centering
-  \includegraphics[width=10cm]{screenshot_2_projects}
-  \caption{Project Structure}
-  \label{fig:projects}
-\end{figure}
-
-\noindent
-The following listing briefly describes the single packages of both projects in alphabetical order to give an overview of the implementation:
-\\
-\\
-\textbf{config} 
-\\
-Lorem Ipsum...
-\\
-\\
-\textbf{server} 
-\\
-Lorem Ipsum...
-\\
-\\
-\textbf{utils} 
-\\
-Lorem Ipsum...
-
-\section{Important Implementation Aspects\label{sec:implaspects}}
-
-Do not explain every class in detail. Give a short introduction about the modules or the eclipse projects. If you want to explain relevant code snippets use the 'lstlisting' tag of LaTeX. Put only short snippets into your thesis. Long listing should be part of the annex.
-
-\lstset{caption=JSON String Code Snippet,label=jsonstring,showstringspaces=false}
-\begin{lstlisting}
-{
-	id: 1,
-	method: "myInstance.getGroup",
-	params: ["Teammates", 2, true]
-}
-
-{
-	id: 2,
-	result: [
-		  "groupDesc":"These are my teammates",
-		  {
-			"javaClass":"src.package.MemberClass",
-			"memberName": "Bob",      
-		  }
-		]
-}\end{lstlisting}
-
-You can also compare different approaches. Example: Since the implementation based on X failed I choosed to implement the same aspect based on Y. The new approach resulted in a much faster ...
-
-\section{Graphical User Interface\label{sec:gui}}
-
-Lorem Ipsum...
-
-\section{Documentation\label{sec:docu}}
-
-Lorem Ipsum...
-
-

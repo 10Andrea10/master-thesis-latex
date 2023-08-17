@@ -1,26 +1,24 @@
 \chapter{Evaluation\label{cha:chapter6}}
 
-In this chapter the implementation of Component X is evaluated. An example instance was created for every service. The following chapter validates the component implemented in the previous chapter against the requirements.
-\\
-\\
-Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
+In this chapter the implementation of the Rollup System is evaluated. The evaluation is divided into two parts: the first part evaluates the performances of the ZoKrates rollup program, while the second part evaluates the performances of the Rollup System as a whole.
+
+
+% Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
 
 \section{Test Environment\label{sec:testenvir}}
 
-Fraunhofer Institute FOKUS' Open IMS Playground was used as a test environment for the telecommunication services. The IMS Playground ...
+ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52.
 
-\section{Scalability\label{sec:scal}}
+The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The rpc node used is \url{https://ghostnet.ecadinfra.com/}.
 
-Lorem Ipsum
-
-\section{Usability\label{sec:usab}}
-
-Lorem Ipsum
 
 \section{Benchmarks\label{sec:benchmarks}}
 
 \subsection{Hash Function\label{subsec:6_hashfunc}}
 
-\subsection{Verifier key and proof size\label{subsec:6_verifierproofsize}}
+The hash function decision has been a key point to make the system more responsive and efficient, as the generation of the Merkle Trees and the merging process of balances and nonces rely on it. The initial programs were using sha2-256, but it was too slow and it was not possible to compile programs with more than 8 users. The implementation of the programs has been changed to use sha3-256, which revealed to be faster: ZoKrates sha2-256, in fact, adds a layer of complexity to the computation because it adds a 256 bits in inputs adding a padding to the input, and involving more constraints in the computation. The sha3-256 implementation allowed performance increase without changing the rest of the program, as the inputs size and outputs were the same as sha2-256.
+Finally the hash function has then been changed to Poseidon, which is a very zk-SNARK friendly, allowing the compilation of programs up to 1024 users.
 
-Lorem Ipsum
+
+
+\subsection{Verifier key and proof size\label{subsec:6_verifierproofsize}}
