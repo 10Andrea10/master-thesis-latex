@@ -59,9 +59,48 @@ A more recent hash function, known as Poseidon \cite{grassi_poseidon_nodate}, ha
 
 Notably, the adoption of the Poseidon hash function necessitates a revision of the system storage. While SHA-256 operates on 256-bit blocks, Poseidon operates on field sizes defined by the underlying elliptic curve. Additionally, considering the process of signature verification, the payload of a signed message must be hashed to fit a predetermined size prior to verification. In the case of Zokrates signature verification, which expects 512 bits of data, padding must be added after hashing the payload with Poseidon. This is due to the fact that the bls12\_381 curve on ZoKrates operates on a 254-bit field size. To meet the expected size, a padding of 258 bits, filled with zeros, is appended to the right of the payload's hash.
 
+\section{Proof Reduction and Compression}
+When creating ZoKrates' private and verification keys it is important to note that the size of the keys is proportional to the number of outputs that the ZoKrates program has. When executing a Rollup the outputs are the new Merkle Tree of the concatenated balances and nonces, plus the list of balances and nonces. Those values are in fact used to update the internal state on the Smart Contract living in Layer 1. As described in \ref{sec:3_smartContractsRequirements} the whole operation sent to the blockchain must not exceed 32768 bytes. Section \ref{subsec:6_verifierproofsize} shows how the proof size increases out of control when the number of users increases. This leads to the impossibility of sending the proof to the Rollup Smart Contract, making the system unusable. A proposed solution consists of realizing a reduction and compression of the outputs of the zokrates program.
 
-\section{Enhancing the Scale Tezos Blockchain with Zk-Rollups Project}
-This section outlines the implementation of the remaining components in the \textit{Scale Tezos Blockchain using Zk-Rollups} project. Additionally, modifications made to the existing features are explained to accommodate these new enhancements.
+\subsection{Proof Size Reduction}
+
+To achieve a reduction in the number of outputs from the ZoKrates program, a change is made in the program's logic. Instead of returning the entire list of balances and nonces, the program only returns the altered balances and nonces. This adjustment introduces the requirement for an index that can be used to identify users in the list.
+
+For every transaction, certain information needs to be returned: the sender's index, balance, and nonce, as well as the receiver's index and balance. In a hypothetical rollup system with 4096 users and 128 transactions per rollup, the outputs of the ZoKrates program shrink from 8193 to 641 (inclusive of the Merkle Root). This reduction significantly cuts down the proof size. Notably, in a Rollup system, many users remain inactive, participating infrequently in the rollup. This dynamic creates a considerable gap between the registered user count and the number of transactions, which enables this mechanism.
+
+Furthermore, this approach proves more advantageous when a single user initiates multiple transactions to the same recipient, as the sender's index and balance are only returned once.
+
+\subsection{Reducing Proof Size}
+
+ZoKrates allows operating on fields of size 254 bits. The proof itself is made up of entries in these fields, no matter the original type of value. Even a simple boolean or a 254-bit value gets represented using just one field entry. This applies to lists of changed indexes, balances, and nonces too. When returning the list of modified indexes, balances and nonces they will occupy a single field value for just 32 bit of information.
+
+By combining indexes, balances, and nonces into one field value, we can fit more info in a single entry. This merging cuts down the number of field entries from the ZoKrates program, which in turn shrinks the proof size. Here's a snippet of how this compression works within the ZoKrates program:
+
+\begin{lstlisting}[language=C++]
+field[NUM_TRANSACTIONS] mut result = [0; NUM_TRANSACTIONS];
+for u32 i in 0..NUM_TRANSACTIONS {
+  // Calculate new balances and nonce
+  ......
+  // Compress indexes, balances, and nonces
+  bool[32] index_send_bits = u32_to_bits(index_sender);
+  bool[32] balance_send_bits = u32_to_bits(balance_sender);
+  bool[32] nonce_send_bits = u32_to_bits(nonce_sender);
+  bool[32] index_rec_bits = u32_to_bits(index_receiver);
+  bool[32] balance_rec_bits = u32_to_bits(balance_receiver);
+  bool[254] joined = [
+    ...index_send_bits, ...balance_send_bits,
+    ...nonce_send_bits, ...[false; 94],
+    ...index_rec_bits, ...balance_rec_bits
+  ];
+  result[i] = pack(joined);
+}
+\end{lstlisting}
+
+This process returns one field value for each transaction. The first 96 bits hold sender-related data, followed by a 94-bit padding, and then 64 bits for receiver-related data.
+
+Another way to improve this is by concatenating all data into one bit array, and then taking 254-bit chunks from it to create field values.
+
+To get back the original values, the Smart Contract needs to decompress the data. At the moment, the ability to get data from field values as bytes is there, but the current SmartPy version lacks converting from Bytes to Nat. When that feature comes in, it wil be possible to restore original values from field values. The upcoming benchmarks will also account for the estimated cost of this value conversion.
 
 \subsection{Storage}
 
