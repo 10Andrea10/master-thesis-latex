@@ -123,7 +123,7 @@ Another way to improve this is by concatenating all data into one bit array, and
 
 To get back the original values, the Smart Contract needs to decompress the data. At the moment, the ability to get data from field values as bytes is there, but the current SmartPy version lacks converting from Bytes to Nat. When that feature comes in, it wil be possible to restore original values from field values. The upcoming benchmarks will also account for the estimated cost of this value conversion.
 
-\section{Storage}
+\section{Storage\label{sec:5_storage}}
 
 Initially, the storage was designed with the intention of accommodating a limited number of users, employing a standard Map. Standard maps in Tezos are always deserialized at every contract execution, even if the elements of the map will not be used. This approach is suitable for debugging or where there is the need of iterating through the entire map without knowing its size. 
 
@@ -185,3 +185,24 @@ The second phase is initiated by a Web Server that detects a considerable accumu
   The withdrawal initiation commences as users dispatch withdrawal requests to the Web Server. Subsequently, the Web Server retrieves the user's balance and nonce from the manager contract and generates withdrawal inputs for the dedicated ZoKrates program. This ZoKrates program orchestrates the computation of the new root hash for the merkle tree containing balances and nonces. This computation involves the subtraction of the user-specified amount. The computed new root hash is then relayed back to the Web Server. In turn, the Web Server invokes the \textit{receive\_withdrawal\_proof} entrypoint within the manager smart contract. This invocation encompasses the provision of the new root hash as a parameter.
   
   Within the manager contract, the merkle tree root hash undergoes an update, alongside adjustments to the user's balance and nonce. Subsequently, the requested sum is transferred to the user's account, finalizing the withdrawal process.
+
+  \section{Non Fungible Tokens Support}
+
+  Tezos suggests the use of the standard TZIP-12 \footnote{\url{https://tzip.tezosagora.org/proposal/tzip-12/}} for creating multi-purpose contracts able to mint tokens, including NFTs. The tokens hold some metadata, that is a map between a string and some bytes, representing strings in UTF-8. The metadata is used, for instance, to set the \textit{artifactUri}, in order to link the NFT token to the IPFS system where the artifact is stored. This simplicity allows an easy integration with the Rollup System previously described.
+
+  \subsection{Storage modifications}
+
+  The storage of the Rollup Manager Smart Contract must be modified to hold NFT tokens. Since NFTs can have multiple amounts, we have to keep track of which and how many NFTs are owned by each user. To identify a NFT it's just needed a natural number: during the minting the NFT will be forever identified by a single natural number, that represents the NFT ID. The storage changes only for the balance field: from a natural number, it becomes a Big Map of natural numbers to natural numbers. The key of the Big Map is the NFT ID, while the value is the amount of NFTs owned by the user. This change minimally affects the gas usage even when having large amount of users. As described in Section \ref{sec:5_storage} Big Maps are lazily deserialized, so only the affected tokens in a rollup are loaded in memory, saving up in gas usage.
+
+  \subsection{ZoKrates Programs}
+
+  ZoKrates Programs must also be modified to perform NFT swaps instead of a plain token. This is possible fetching the storage and converting the Big Map representing the state in the following way:
+  \begin{itemize}
+	\item The nonce list remains unchanged;
+	\item The inner Big Map is converted to a list of pairs, where the first element is the NFT ID and the second is the amount of NFTs owned by the user;
+	\item The public key list remains unchanged.
+  \end{itemize}
+
+  Applying this conversion allows the ZoKrates program to have a full state of the NFTs owned by each user, and to perform swaps between users. The conversion is done in the Web Server, before sending the inputs to the ZoKrates server. The number of outputs, so the size of the verification key, remains the same, as the conversion and reduction mechanism described in Section \ref{sec:5_redandcompr} is valid due to the free space in the field entry, previously defined as padding. It is in fact needed 32 bit taken from the padding to represent the token type object of the transfer.
+
+  \subsection{Rollup Manager Contract}

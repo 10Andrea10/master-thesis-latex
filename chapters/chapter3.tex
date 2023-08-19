@@ -7,16 +7,16 @@ The first goal of this Master Thesis is to finish the implementation of the Zk-R
 The rollup system must be capable of being usable for many applications, so it has to be developed keeping in mind to have it the most extensible, modular and blockchain agnostic as possible. This is a key concept that makes it possible to extend it in the future, implementing new features and optimizations.
 
 \section{Scaling the Zk-Rollup system}
-The second research area of this Master Thesis must answer the question: \textit{How can the previously implemented  Zk-Rollup system scale when facing a fluctuating number of users?}
+The second research area of this Master Thesis must answer the question: \textit{How can the previously implemented  Zk-Rollup system react when facing a fluctuating number of users?}
 
-It is in fact important to understand how can the system scale: horizontally, adding more nodes to increase the throughput and decentralization of the system; vertically assigning more compute capabilities to the machines; applying algorithms to distribute the load between the nodes.
+It is in fact important to understand how can the system react: horizontally, adding more nodes to increase the throughput and decentralization of the system; vertically assigning more compute capabilities to the machines; applying algorithms to distribute the load between the nodes.
 
 This research question is a key concept to make the system usable in a real world application, when the number of users is not constant, but it can vary a lot in a short period of time while the system must be able to handle it.
 
 \section{Proof of concept of the Zk-Rollup system applied to a NFT Marketplace}
 The last area to explore is guided by the question: \textit{How can the Zk-Rollup system be applied to a real world application?}
 
-The application chosen for this proof of concept is a NFT Marketplace. It has been chosen because the transfers involve tokens and the ownerships of the NFTs through an IPFS system. The NFTs must be handled by the application without sacrificing the decentralization of the system. This type of marketplace has also a fluctuating number of users and transactions, involving the same NFT object, so it is a valid example to test the system applied on a real world application.
+The application chosen for this proof of concept is a NFT Marketplace. It has been chosen because the transfers involve tokens of different types. The NFTs must be handled by the application without sacrificing the decentralization of the system. This type of marketplace has also a fluctuating number of users and transactions, involving the same NFT object, so it is a valid example to test the system applied on a real world application.
 
 \section{Smart Contracts Requirements \label{sec:3_smartContractsRequirements}}
 
@@ -37,5 +37,30 @@ Currently, for Tezos, the maximum operation size is 32,768 bytes\footnote{Refer 
 The rollup smart contract is responsible for storing registered accounts, balances, and associated tokens within the rollup system. While there is no specific predefined limit on the storage size, it becomes a critical factor during entrypoint execution. Upon each entrypoint call, the contract and its storage are deserialized for use by the Michelson interpreter. To avoid excessive time consumption and reaching the gas limit, it's crucial to keep the contract's storage as compact as possible. If the storage becomes too large, the contract may become unusable due to the gas limit being reached before the contract can be deserialized. A recommended solution offered by Tezos is to utilize big maps for storing data. Big maps are special maps that are only deserialized when accessed, and only the required data is loaded, allowing for more efficient storage management. However, it's important to note that iterating over big maps or determining their size is not directly supported.
 
 \section{Layer 2 Requirements}
+
+Layer 2 is executed in a unconstrained environment by its nature. This brings the possibility to use any program and any hardware to execute it. However, there are some requirements that must be taken into account when designing the Layer 2 system.
+
+\subsection{Hardware Requirements}
+
+Layer 2 operations, particularly those involving ZoKrates proof computation, can demand significant computational resources. This is especially true for ZoKrates executors responsible for generating proofs. These executors require substantial amounts of RAM to efficiently perform their tasks.
+
+As a result, when designing and deploying the Layer 2 system, it's essential to ensure that the hardware used to execute ZoKrates programs meets the required specifications. Cloud services can be leveraged effectively, as these executors do not need to run continuously and can be activated on-demand, contributing to cost savings.
+
+\subsection{Execution Time}
+
+The execution time of ZoKrates programs plays a critical role in the overall performance of the Zk-Rollup system. ZoKrates programs are known to have relatively slow execution times due to the cryptographic computations involved in generating proofs. While ZoKrates provides a powerful toolkit for constructing zero-knowledge proofs, the downside is that the proofs can take a significant amount of time to compute, particularly as the complexity of the computation increases.
+
+As the Zk-Rollup system relies on generating and verifying proofs for transactions, it is necessary that the execution time of ZoKrates programs remains reasonable. If the execution time becomes prohibitively long, it can lead to several performance issues:
+
+\begin{itemize}
+    \item Delayed Transaction Processing: Slow execution of ZoKrates programs can result in delayed transaction processing. This undermines the system's real-time capabilities, hindering its usability in applications that require timely confirmation of transactions.
+    \item Scalability Challenges: As the number of users and transactions increases, the cumulative execution time of ZoKrates programs can become a bottleneck. This can impede the system's ability to scale efficiently.
+    \item User Experience Impact: Prolonged execution times can lead to frustration among users who expect fast and responsive interactions with the blockchain. This can negatively impact the user experience.
+\end{itemize}
+
+To maintain an acceptable level of system performance, efforts should be made to optimize the ZoKrates programs and their execution. This optimization can involve optimizing the ZoKrates compiler, exploring hardware acceleration, and implementing caching strategies to minimize redundant computation. Balancing the need for cryptographic security with the need for efficient execution is crucial for ensuring the viability of the Zk-Rollup system in practical applications.
+
+In the subsequent chapters, the strategies employed to mitigate the potential performance challenges posed by ZoKrates execution times will be discussed, along with their impact on the overall system performance.
+
 
 \todo[inline]{Talk about hardware requirements, execution time, etc.}
