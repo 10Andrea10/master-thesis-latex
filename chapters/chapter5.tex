@@ -5,7 +5,7 @@ This chapter describes the implementation details, including the structural deci
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.9\columnwidth]{5_drawings-final_rollup_architecture.png}
-	\caption[Scaling Solutions]{Architecture of the Rollup System.}  
+	\caption[Rollup Architecture]{Architecture of the Rollup System.}  
 	\label{fig:fig:5_drawings-final_rollup_archotecture.png}
   \end{figure} 
 
@@ -59,10 +59,31 @@ A more recent hash function, known as Poseidon \cite{grassi_poseidon_nodate}, ha
 
 Notably, the adoption of the Poseidon hash function necessitates a revision of the system storage. While SHA-256 operates on 256-bit blocks, Poseidon operates on field sizes defined by the underlying elliptic curve. Additionally, considering the process of signature verification, the payload of a signed message must be hashed to fit a predetermined size prior to verification. In the case of Zokrates signature verification, which expects 512 bits of data, padding must be added after hashing the payload with Poseidon. This is due to the fact that the bls12\_381 curve on ZoKrates operates on a 254-bit field size. To meet the expected size, a padding of 258 bits, filled with zeros, is appended to the right of the payload's hash.
 
-\section{Proof Reduction and Compression}
-When creating ZoKrates' private and verification keys it is important to note that the size of the keys is proportional to the number of outputs that the ZoKrates program has. When executing a Rollup the outputs are the new Merkle Tree of the concatenated balances and nonces, plus the list of balances and nonces. Those values are in fact used to update the internal state on the Smart Contract living in Layer 1. As described in \ref{sec:3_smartContractsRequirements} the whole operation sent to the blockchain must not exceed 32768 bytes. Section \ref{subsec:6_verifierproofsize} shows how the proof size increases out of control when the number of users increases. This leads to the impossibility of sending the proof to the Rollup Smart Contract, making the system unusable. A proposed solution consists of realizing a reduction and compression of the outputs of the zokrates program.
+The signature verification, done for each transaction, still uses sha2 hashes, as enforced by Ed25519 standard. This means that the signature verification may be considered a bottleneck for the system, as better shown in Section \ref{subsec:6_zokratesperf}.
 
-\subsection{Proof Size Reduction}
+\section{Proof Reduction and Compression \label{sec:5_redandcompr}}
+
+When setting up ZoKrates' private and verification keys, it's important to remember that the key sizes depend on the number of outputs in the ZoKrates program. When you run a Rollup, these outputs represent the updated Merkle Tree that combines balances and nonces, along with the list of balances and nonces. These values are crucial for updating the inner storage of the Manager Smart Contract on Layer 1. As explained in Section \ref{sec:3_smartContractsRequirements}, everything sent to the blockchain must be no more than 32768 bytes in total.
+
+As more users and transactions come into play, the output sizes grow, causing the keys to also become larger. Unfortunately, this situation makes it impossible to send the proof to the Rollup Smart Contract, which essentially breaks the system. To address this, a potential solution is to find a way to shrink and compress the outputs produced by the zokrates program.
+
+Implementing this solution would allow the system to handle a higher number of users and transactions since the proof size would be smaller. Here's an example of what the algorithm could achieve in a system with 1024 users and 3 transactions:
+\begin{multicols}{2}
+\begin{itemize}
+	\item No reduction and compression:
+	\begin{itemize}
+		\item verification key: 462KB;
+		\item proof size: 151KB.
+	\end{itemize}
+	\item Reduction and compression:
+	\begin{itemize}
+		\item verification key: 5,5KB;
+		\item proof size: 2,1KB.
+	\end{itemize}
+\end{itemize}
+\end{multicols}
+
+\subsection{Proof Reduction}
 
 To achieve a reduction in the number of outputs from the ZoKrates program, a change is made in the program's logic. Instead of returning the entire list of balances and nonces, the program only returns the altered balances and nonces. This adjustment introduces the requirement for an index that can be used to identify users in the list.
 
@@ -70,7 +91,7 @@ For every transaction, certain information needs to be returned: the sender's in
 
 Furthermore, this approach proves more advantageous when a single user initiates multiple transactions to the same recipient, as the sender's index and balance are only returned once.
 
-\subsection{Proof Compression}
+\subsection{Proof Compression \label{subsec:5_compression}}
 
 ZoKrates allows operating on fields of size 254 bits. The proof itself is made up of entries in these fields, no matter the original type of value. Even a simple boolean or a 254-bit value gets represented using just one field entry. This applies to lists of changed indexes, balances, and nonces too. When returning the list of modified indexes, balances and nonces they will occupy a single field value for just 32 bit of information.
 
@@ -154,7 +175,7 @@ The second phase is initiated by a Web Server that detects a considerable accumu
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.7\columnwidth]{5_drawings-sequence_deposit.png}
-	\caption[Scaling Solutions]{Sequence Diagram of Deposit Process}  
+	\caption[Sequence Deposit]{Sequence Diagram of Deposit Process}  
 	\label{fig:5_drawings-sequence_deposit.png}
   \end{figure} 
 
