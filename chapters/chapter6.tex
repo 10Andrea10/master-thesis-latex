@@ -1,6 +1,7 @@
 \chapter{Evaluation\label{cha:chapter6}}
 
-In this chapter the implementation of the Rollup System is evaluated. The evaluation is divided into two parts: the first part evaluates the performances of the ZoKrates rollup program, while the second part evaluates the performances of the Rollup System as a whole.
+In this chapter the implementation of the Rollup System is evaluated.
+\todo[inline]{Write something}
 
 
 % Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
@@ -9,7 +10,7 @@ In this chapter the implementation of the Rollup System is evaluated. The evalua
 
 ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52. When elsewhere specified it has been used a Google Cloud Platform virtual machine with 12 vCPU Intel Haswell, 256GB of RAM and 300 GB of SSD. This machine runs Debian 11.
 
-The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The rpc node used is \url{https://ghostnet.ecadinfra.com/}.
+The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The RPC node used is \url{https://ghostnet.ecadinfra.com/}.
 
 
 \section{Benchmarks\label{sec:benchmarks}}
@@ -17,7 +18,7 @@ The blockchain used for the Rollup System is the Tezos blockchain running on the
 \subsection{Hash Function\label{subsec:6_hashfunc}}
 
 The hash function decision has been a key point to make the system more responsive and efficient, as the generation of the Merkle Trees and the merging process of balances and nonces rely on it. The initial programs were using sha2-256, but it was too RAM demanding and it was not possible to compile programs with more than 8 users. The implementation of the programs has been changed to use sha3-256, which revealed to be faster: ZoKrates sha2-256, in fact, adds a layer of complexity to the computation because it adds 256 bits of padding to the input, and involves more constraints in the computation. The sha3-256 implementation allowed performance increase without changing the rest of the program, as the inputs size and outputs were the same as sha2-256.
-Finally the hash function has then been changed to Poseidon, which is very zk-SNARK friendly, allowing the compilation of programs up to 1024 users. Figure \ref{fig:6_sheets-benchmarks_hash.png} shows the RAM requirements for each hash function tested compared to the amount of users and transactions.
+Finally the hash function has then been changed to Poseidon, which is very zk-SNARK friendly, allowing the compilation of programs up to 2048 users but required some changes in the programs. Figure \ref{fig:6_sheets-benchmarks_hash.png} shows the RAM requirements for each hash function tested compared to the amount of users and transactions.
 
 \begin{figure}[ht]
 	\centering
@@ -41,7 +42,7 @@ A problem that emerges immediately when compiling the ZoKrates programs are the 
 
 The verification performed by the verifier contracts and the subsequent update of the storage have costs. The verification cost is proportional to the size of the proof: during the proof verification, in fact, all the constraints are checked in a loop, consuming gas for each constraint verified. A single Layer 1 transaction between two users, as of 18/08/2023 costs 0.000518 tz.
 
-Figure \ref{fig:6_sheets-cost-comparison.png} shows the fees for a single transaction in different scenarios of Rollup System size. The fees are calculated by submitting a rollup execution proof and looking at the fees paid for the proof verification and the storage update. From the graph it is evident that even with a small Rollup System, the fees are very low and always below the fees of a single L1 transaction. Fees increase only with the increased number of transactions, due to the subsequent proof size increment, as explained in Section \ref{sec:5_redandcompr}.
+Figure \ref{fig:6_sheets-cost-comparison.png} shows the fees for a single transaction in different scenarios of Rollup System size. The fees are calculated by submitting a rollup execution proof and looking at the fees paid for the proof verification and the storage update. From the graph it is evident that even with a small Rollup System, the fees are very low and always below the fees of a single L1 transaction. Fees increase only with the increased number of transactions, due to the subsequent proof size increment, as explained in Section \ref{sec:5_redandcompr}, but the more transactions are included in the rollup system the more the fees are reduced.
 
 \begin{figure}[ht]
 	\centering
@@ -58,12 +59,12 @@ The proposed Rollup System has demonstrated greater efficiency compared to the c
 
 In order to execute a rollup, it is necessary to retrieve all users to recalculate the new Merkle root and determine the updated balances. As the number of users registering with the system increases, this process becomes slower. ZoKrates programs are capable of handling only powers of 2 numbers of users (including empty users) due to the merkle tree's structural characteristics. This can lead to exponential growth even when the number of users increases by just one.
 
-Upon registering with the rollup system, a user transfers funds from his account to the Manager Smart Contract. This approach allows the Manager Smart Contract to manage user funds by applying fees under specific circumstances. A proposed Fee Model revolves around the concept of a user's last activity, defined as the most recent event of sending or receiving a transaction within the Rollup System. This information can be easily computed by the Manager Smart Contract while updating balances and nonces for senders and receivers after a successful proof verification having a new Big Map in the storage using the same indexes of the main one. This Big Map doesn't add overhead to the whole system: it is not included in the rollup programs and only the senders and receivers indexes are accessed (and deserialized) during a proof verification.
+Upon registering with the rollup system, a user transfers funds from his account to the Manager Smart Contract. This approach allows the Manager Smart Contract to manage user funds by applying fees under specific circumstances. A proposed Fee Model revolves around the concept of a user's last activity, defined as the most recent event of sending or receiving a transaction within the Rollup System. This information can be easily computed by the Manager Smart Contract while updating balances and nonces for senders and receivers after a successful proof verification: using a Big Map in the storage mapped with the same indexes of the main one it can save the last activity with a timestamp. This Big Map doesn't add overhead to the whole system: it is not included in the rollup programs and only the senders and receivers indexes are accessed (and deserialized) after a successful proof verification.
 
 An external server node may periodically retrieve the Big Map of users activity and identify stale accounts. Through a ZoKrates program that is subsequently verified, the server can compute the updated balances while collecting fees on stale accounts. These fees can then be directly transferred to the Rollup Manager Smart Contract, which can utilize them to cover the costs of proof verification and storage updates.
 
 \subsection{Reward System}
 
-Layer 2 Rollup servers consist of two types: Web-Managers and ZoKrates executors. Web-Managers are economical servers, capable of operating with modest hardware specifications. They function as Docker containers hosting a database and NodeJs server. On the other hand, ZoKrates executors are relatively more resource-intensive, requiring a significant amount of RAM for witness computation and proof generation. However, ZoKrates executors possess an advantage: they don't need to run continuously, being solely necessary when computing and submitting proofs to the blockchain. This enables them to be deployed on a cloud service, activated only as needed. This approach reduces the costs of Layer 2 operations but still remains the need of a reward system.
+Layer 2 Rollup servers consist of two types: Web-Managers and ZoKrates executors. Web-Managers are economical servers, capable of operating with modest hardware specifications. They function as Docker containers hosting a database and NodeJs server. On the other hand, ZoKrates executors are relatively more resource-intensive, requiring a significant amount of RAM for witness computation and proof generation. However, ZoKrates executors possess an advantage: they don't need to run continuously, being only necessary when computing proofs. This enables them to be deployed on a cloud service and activated only as needed. This approach can reduce the costs of Layer 2 operations.
 
-Similar to the role of bakers in the Tezos blockchain when generating blocks, Layer 2 nodes can be rewarded for their contributions in submitting valid proofs. These rewards are extracted from the sender's balance during a transaction. The rewarded amounts are then attributed directly to the Rollup Manager Smart Contract's Layer 1 balance. This enables the Rollup Manager Smart Contract to pay a baker for the proof submission without requiring an update of the Merkle Tree.
+Similar to the role of bakers in the Tezos blockchain when generating blocks, Layer 2 nodes can be rewarded for their contributions in submitting valid proofs. These rewards are extracted from the sender's balance during a rollup transaction. The rewarded amounts are then accredited directly to the Rollup Manager Smart Contract's Layer 1 balance. This enables the Rollup Manager Smart Contract to pay a baker for the proof submission without requiring an update of the Merkle Tree of the balances, because its balance is a direct amount stored in L1.
