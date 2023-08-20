@@ -12,13 +12,13 @@ The necessity for blockchain scalability has been recognized by the community, e
 
 \section{Objective}\label{sec:objective}
 
-The objective of this thesis is to address the issue of limited scalability in the blockchains. A crucial factor that constrains the number of transactions in a block is the gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction consumes gas, and the gas limit determines the maximum amount of gas that can be utilized in a block.
+The objective of this thesis is to address the issue of limited scalability and high fees in the blockchains. A crucial factor that constrains the number of transactions in a block is the gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction, in fact, consumes gas, and the gas limit determines the maximum amount of computational availability.
 
 The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. However, it can also hinder the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
 
 Enhancing the blockchain's throughput is also directly impacted by the block size, as increasing its size can increase the system's capacity. Nonetheless, a thorough analysis of the consequences of enlarging the block size is necessary, as arbitrary increases can lead to negative effects. For instance, large block sizes may cause network congestion, slower propagation speeds, and an increase in the number of stale blocks—blocks that are not included in the longest chain due to conflicts or concurrency—posing potential security risks \cite{gervais_security_2016}.
 
-This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a second-Layer solution. This second Layer is entirely run by nodes that are not involved in computing or verifying the Layer 1 transaction. This way we are not constrained by limitations imposed by the chain, but we are free to use a lot more computational power and inject into the blockchain only the result of the computations. This way we should be able to achieve higher throughput and lower transaction fees. 
+This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a second-Layer solution. This second Layer is entirely run by nodes that are not involved in computing or verifying the Layer 1 transaction. This way we are not constrained by limitations imposed by the chain, but we are free to use a lot more computational power and inject into the blockchain only the result of the computations. This way we should be able to achieve higher throughput when congestion occurs and lower transaction fees. 
 
 
 \section{Structure\label{sec:structure}}

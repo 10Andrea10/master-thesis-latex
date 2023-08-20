@@ -51,35 +51,35 @@
     \tableofcontents
     \thispagestyle{empty}
     
-    \todo[inline]{talk to your supervisor if this is needed}
+    %\todo[inline]{talk to your supervisor if this is needed}
     \listoffigures
     \thispagestyle{empty}
     
-    \listoftables
-    \thispagestyle{empty}
+    %\listoftables
+    %\thispagestyle{empty}
     
 % --------------------------------------------------------------
 
 \mainmatter % comment single chapters for faster compilation
 
-    \input{./chapters/chapter1}
-    \input{./chapters/chapter2}
-    \input{./chapters/chapter3}
-    \input{./chapters/chapter4}
-    \input{./chapters/chapter5}
-    \input{./chapters/chapter6}
-    \input{./chapters/chapter7}
+    \include{./chapters/chapter1}
+    \include{./chapters/chapter2}
+    \include{./chapters/chapter3}
+    \include{./chapters/chapter4}
+    \include{./chapters/chapter5}
+    \include{./chapters/chapter6}
+    \include{./chapters/chapter7}
 
 % ---------------------------------------------------------------
 \backmatter % no page numbering from here
-    \todo[inline]{talk to your supervisor if this is needed}
-    \input{./misc/acronyms}
+    %\todo[inline]{talk to your supervisor if this is needed}
+    %\input{./misc/acronyms}
 		
 		% if you want to provide a glossary with explanations of important terms put it in here
 
     \bibliographystyle{geralpha}
     \bibliography{./bib/manual}
     
-    \input{./misc/annex}
+    %\input{./misc/annex}
 
 \end{document}
