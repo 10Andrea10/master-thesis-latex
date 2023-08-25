@@ -1,35 +1,63 @@
 \chapter{Conclusion\label{cha:chapter7}}
 % The final chapter summarizes the thesis. The first subsection outlines the main ideas behind Component X and recapitulates the work steps. Issues that remained unsolved are then described. Finally the potential of the proposed solution and future work is surveyed in an outlook.
-
-% \section{Summary\label{sec:summary}}
-
 % Explain what you did during the last 6 month on 1 or 2 pages!
-% \\
-% \\
-% \noindent The work done can be summarized into the following work steps
 
-% \begin{itemize}
-% 		\item Analysis of available technologies
-% 		\vspace{-0.11in} 
-% 		\item Selection of 3 relevant services for implementation
-% 		\vspace{-0.11in} 
-% 		\item Design and implementation of X on Windows
-% 		\vspace{-0.11in} 
-% 		\item Design and implementation of X on mobile devices
-% 		\vspace{-0.11in} 
-% 		\item Documentation based on X
-% 		\vspace{-0.11in} 
-% 		\item Evaluation of the proposed solution
-% \end{itemize}
+\section{Summary\label{sec:summary}}
+
+The work done in this master thesis allowed to show how a problem such as high transactions fee in the blockchain can be solved, by introducing a new layer on top of the blockchain, called Layer 2. The solution proposed has a simple architecture and can run on different blockchains with a few changes on the Layer 1. The system proposed is also capable of handling different types of token, like in the case of an NFT marketplace. Those results are compliant with the requirements of the project, described at \ref{cha:chapter3}, where is given remarkable importance to the need of having a system easily adaptable to different purposes.
+
+\noindent The work done can be summarized into the following work steps:
+\vspace{-0.11in}
+\begin{itemize}
+	\item Analysis of the already existing Zk-Rollup projects and solutions they provided to common problems;
+	      \vspace{-0.11in}
+	\item Analysis of the Tezos blockchain available functionalities and limitations;
+	      \vspace{-0.11in}
+	\item Analysis of ZoKrates toolbox and programs;
+	      \vspace{-0.11in}
+	\item Design and implementation of missing functionalities of Layer 2;
+	      \vspace{-0.11in}
+	\item Design and implementation of enhancements to L2;
+	      \vspace{-0.11in}
+	\item Design and implementation of a new and more efficient L1 to support the new L2;
+	      \vspace{-0.11in}
+	\item Benchmarking of the system, as single components and as a whole;
+	      \vspace{-0.11in}
+	\item Evaluation of the Rollup System.
+\end{itemize}
+
+The final Rollup System is capable of handling a good amount of users, tested in our system up to 2024, and a reasonable amount of transaction compared to the number of users, tested up to 55 transactions per rollup. From our tests emerged that the fee per single transaction executed in the Rollup System is reduced by 40\% compared to a normal L1 transaction and it gets linearly cheaper as more transactions are included in the rollup.
+
+Witness and proof generation time are heavily dependant of the underlying CPU hardware running the ZoKrates program. Using our test environment it took a maximum of 40 minutes to generate a witness and proof for 1024 users and 30 transactions. This long execution time can be mitigated by using a more powerful CPU exploiting Cloud Services for small bursts of computation. Compared to the alternative rollup solution Optimistic Rollups, described at \ref{subsec:optimisticRollups}, our Zk-Rollup system has an incredibly lower confirmation period.
 
 % \section{Dissemination\label{sec:dissemination}}
 
 % Who uses your component or who will use it? Industry projects, EU projects, open source...? Is it integrated into a larger environment? Did you publish any papers?
 
-% \section{Problems Encountered\label{sec:problems}}
+\section{Problems Faced}
+
+Some problems preventing the system to be functional were encountered during the development of the project. This is a brief overview to the most important.
+
+\textbf{Hash Function}: the hash function revealed to be a critical  decision for reducing the hardware resources needed. From the initial sha2-256 hash function, we moved to Poseidon hash, with a 10000\% reduction in terms of RAM usage. This allowed to run the system from an initial version with 8 users, up to 2024 users.
+
+\textbf{Proof Reduction and Compression}: as users were increasing in the Rollup System, the proof size was increasing too. This was preventing the proof to be sent to the verifier smart contract. To solve this issue, a proof reduction and compression algorithm was implemented, reducing the proof length from \textit{\#users*2} to \textit{\#transactions}. Although this approach works from Layer 2 side and verification phase, it is not yet possible to extract the compressed data to update the L1 storage due to missing functionalities in the SmartPy library.
+
+\textbf{Repeated transition Attack}: malevolent users could send the same transaction multiple times, draining sender's account even if the transaction was properly signed. To solve this issue, a nonce was added to the transaction, preventing the same transaction to be executed more than once as the nonce has to be incremented at each transaction, allowing the system to check if the transaction has already been executed.
 
 % Summarize the main problems. How did you solve them? Why didn't you solve them?
 
 % \section{Outlook\label{sec:outlook}}
+\section{Future Work}
+
+Future work should be focused on the following points:
+
+\vspace{-0.11in}
+\begin{itemize}
+	\item \textbf{Proof Reduction and Compression}: the proof reduction and compression algorithm should be completed on the Layer 1 to allow the system to update contract storage with the new balances and tokens.
+	      \vspace{-0.11in}
+	\item \textbf{Rollup System Optimization}: the Rollup System should be optimized to reduce the time needed to generate the witness and proof. This can be done by optimizing the ZoKrates program, or by evaluating performances on different CPU types and architectures;
+	\item \textbf{Rollup System cost}: the costs of running the infrastructure should be studied to evaluate a fair transaction fee to apply to users to be able to reward nodes submitting valid proofs.
+\end{itemize}
+
 
 % Future work will enhance Component X with new services and features that can be used ...
