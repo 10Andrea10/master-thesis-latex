@@ -8,17 +8,17 @@ In recent years, blockchain technology has witnessed remarkable growth, with the
 
 As the popularity of blockchains continues to rise, many companies are exploring the technology's potential and attracting new users. Predictions indicate exponential growth in the blockchain space in the coming years \cite{noauthor_global_nodate}. However, this growth presents a challenge due to the limited scalability offered by current blockchains. For instance, Ethereum, one of the most popular blockchains, currently faces a transaction processing limit of only 15 transactions per second (TPS).
 
-The necessity for blockchain scalability has been recognized by the community, especially evident when Ethereum transaction fees reached an average of \$70 in 2020\footnote{\url{https://ycharts.com/indicators/ethereum_average_transaction_fee}} due to the high volume of submitted transactions. This issue is not unique to Ethereum, as other blockchains also experience similar problems. Vitalik Buterin's "Scalability Trilemma" posits that achieving scalability, security, and decentralization simultaneously in a distributed system, such as blockchains, is a challenging task\footnote{\url{https://ethereum.org/en/roadmap/vision/}}.
+The necessity for blockchain scalability has been recognized by the community, especially evident when Ethereum transaction fees reached an average of \$70 in 2020\footnote{\url{https://ycharts.com/indicators/ethereum_average_transaction_fee}} due to the high volume of submitted transactions and consequent congestion of the network. This issue is not unique to Ethereum, as other blockchains also experience similar problems. Vitalik Buterin's "Scalability Trilemma" posits that achieving scalability, security, and decentralization simultaneously in a distributed system, such as blockchains, is a challenging task\footnote{\url{https://ethereum.org/en/roadmap/vision/}}.
 
 \section{Objective}\label{sec:objective}
 
 The objective of this thesis is to address the issue of limited scalability and high fees in the blockchains. A crucial factor that constrains the number of transactions in a block is the gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction, in fact, consumes gas, and the gas limit determines the maximum amount of computational availability.
 
-The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. However, it can also hinder the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
+The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. It's also necessary to ensure that a minimal number of transactions can be included in the block. However, it can also hinder the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
 
 Enhancing the blockchain's throughput is also directly impacted by the block size, as increasing its size can increase the system's capacity. Nonetheless, a thorough analysis of the consequences of enlarging the block size is necessary, as arbitrary increases can lead to negative effects. For instance, large block sizes may cause network congestion, slower propagation speeds, and an increase in the number of stale blocks—blocks that are not included in the longest chain due to conflicts or concurrency—posing potential security risks \cite{gervais_security_2016}.
 
-This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a second-Layer solution. This second Layer is entirely run by nodes that are not involved in computing or verifying the Layer 1 transaction. This way we are not constrained by limitations imposed by the chain, like the gas limit or block size, but we are free to use a lot more computational power and inject into the blockchain only the result of the computations. With this approach is should be possible to achieve higher throughput when congestion occurs and lower transaction fees. 
+This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a Layer 2 solution (L2). This second Layer is entirely run by nodes that are not involved in computing or verifying Layer 1 transactions. This way we are not constrained by limitations imposed by the chain, like the gas limit or block size, but we are free to use a lot more computational power. Rollups, a Layer 2 solution, in fact inject into the blockchain only the result of the computations performed outside the chain, making use of the unconstrained computational availability offered on L2. With this approach it should be possible to achieve higher throughput when congestion occurs and lower transaction fees. 
 
 
 \section{Structure\label{sec:structure}}
@@ -31,16 +31,16 @@ This section gives a brief introduction into the main chapters of this thesis.
 \textbf{Chapter \ref{cha:chapter2}} analyzes the current state of the art in the field of blockchain scalability and presents the most relevant related work including the project this thesis is based on.
 \\
 \\
-\textbf{Chapter \ref{cha:chapter3}} analyzes the requirements for your component. This chapter will have 5-10 pages.
+\textbf{Chapter \ref{cha:chapter3}} analyzes the research question and the requirements for the Rollup System.
 \\
 \\
-\textbf{Chapter \ref{cha:chapter4}} is usually termed 'Concept', 'Design' or 'Model'. Here you describe your approach, give a high-level description to the architectural structure and to the single components that your solution consists of. Use structured images and UML diagrams for explanation. This chapter will have a volume of 20-30 percent of your thesis.
+\textbf{Chapter \ref{cha:chapter4}} describes the architecture of the Layer 1 and Layer 2 components. It also describes the communication between the two layers.
 \\
 \\
-\textbf{Chapter \ref{cha:chapter5}} describes the implementation part of your work. Don't explain every code detail but emphasize important aspects of your implementation. This chapter will have a volume of 15-20 percent of your thesis.
+\textbf{Chapter \ref{cha:chapter5}} describes the implementation part of the Rollup System.It shows the components and the technologies used to build the system. It also describes the challenges faced during the development.
 \\
 \\
-\textbf{Chapter \ref{cha:chapter6}} is usually termed 'Evaluation' or 'Validation'. How did you test it? In which environment? How does it scale? Measurements, tests, screenshots. This chapter will have a volume of 10-15 percent of your thesis.
+\textbf{Chapter \ref{cha:chapter6}} shows the tests performed and the results obtained. It also shows the limitations of the system and the possible future improvements.
 \\
 \\
-\textbf{Chapter \ref{cha:chapter7}} summarizes the thesis, describes the problems that occurred and gives an outlook about future work. Should have about 4-6 pages.
+\textbf{Chapter \ref{cha:chapter7}} summarizes the work done and the challenges faced. It presents the conclusions and the future work to improve the system.
