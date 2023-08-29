@@ -1,63 +1,119 @@
-\chapter{Conclusion\label{cha:chapter7}}
-% The final chapter summarizes the thesis. The first subsection outlines the main ideas behind Component X and recapitulates the work steps. Issues that remained unsolved are then described. Finally the potential of the proposed solution and future work is surveyed in an outlook.
-% Explain what you did during the last 6 month on 1 or 2 pages!
+\chapter{Evaluation\label{cha:chapter6}}
 
-\section{Summary\label{sec:summary}}
-
-The work done in this master thesis allowed to show how a problem such as high transactions fee in the blockchain can be solved, by introducing a new layer on top of the blockchain, called Layer 2. The proposed solution presents a simple architecture adaptable to various blockchains with minimal adjustments to Layer 1. In particular, the system can accommodate diverse token types, including non-fungible tokens (NFTs), like in the case of an NFT marketplace. These achievements align with the project's requirements outlined in Chapter \ref{cha:chapter3}, where is given remarkable importance to the need of having an easily adaptable system.
-
-\noindent The work can be summarized into the following work steps:
-\vspace{-0.11in}
-\begin{itemize}
-	\item Analysis of existing Zk-Rollup projects and their solutions to common problems;
-	      \vspace{-0.11in}
-	\item Examination of functionalities and limitations of the Tezos blockchain;
-	      \vspace{-0.11in}
-	\item Study of ZoKrates toolbox and programs;
-	      \vspace{-0.11in}
-	\item Design and implementation of Layer 2 functionalities;
-	      \vspace{-0.11in}
-	\item Implementation of enhancements to Layer 2;
-	      \vspace{-0.11in}
-	\item Development of an efficient Layer 1 to support the new Layer 2;
-	      \vspace{-0.11in}
-	\item Benchmarking of single components and the entire system;
-	      \vspace{-0.11in}
-	\item Evaluation of the Rollup System.
-\end{itemize}
-
-The final Rollup System is capable of handling a considerable user load, tested up to 2024, and a proportional volume of transactions, tested up to 55 transactions per rollup. Results indicate a 40\% reduction in transaction fees per transaction compared to normal Layer 1 transactions, with costs decreasing linearly as transactions are included within the rollup.
-
-Witness and proof generation times heavily depend on the underlying CPU hardware running ZoKrates. Test results showed a maximum of 40 minutes for generating a witness and proof for 1024 users and 30 transactions. Reduction of these extended execution times can be achieved through more powerful CPUs, leveraging cloud services for short bursts of computation. Notably, when compared to the alternative Optimistic Rollup solution, our Zk-Rollup system boasts significantly lower confirmation periods.
-
-\section{Challenges Faced}
-
-Several challenges were encountered during the project's progression, preventing its full functionality. The most important among these challenges are:
-\vspace{-0.11in}
-\paragraph{Hash Function} The choice of hash function revealed to be critical in hardware resource reduction. Transitioning from sha2-256 to Poseidon hash allowed a remarkable 10000\% decrease in RAM usage. This achievement allowed to run the system for a wider number of users, from an initial 8 users to up to 2024 users.
-\vspace{-0.11in}
-\paragraph{Proof Reduction and Compression} As user numbers grew, so did proof sizes, preventing its upload to the verifier smart contract. To solve this issue, a proof reduction and compression algorithm was implemented, reducing proof length from \textit{\#users*2} to \textit{\#transactions}. Although this approach works from Layer 2 side and verification phase, it is not yet possible to extract the compressed data to update the L1 storage due to missing functionalities in the SmartPy library.
-\vspace{-0.11in}
-\paragraph{Repeated Transition Attack} Malicious users could send repeated transactions, draining sender's account even with valid signatures. To counteract this, a nonce mechanism was introduced, preventing the same transaction to be executed more than once through nonce increment, allowing the system to check if the transaction has already been executed.
-
-\section{Broad Usage\label{sec:dissemination}}
-
-This project successfully proved the feasibility of implementing a Tezos-based Zk-Rollup system using the ZoKrates toolbox. The system's cost efficiency is superior than conventional L1 transactions, with the possibility to apply the system to different token types, like in the case of an NFT marketplaces. This versatility allows projects with different scopes to adopt the system in various blockchains and applications, requiring modest hardware capabilities, proportional of the amount of users and transactions foreseen in the application.
-
-\section{Future Work}
-
-Future work should prioritize the following areas:
-\vspace{-0.11in}
-\begin{itemize}
-	\item \textbf{Proof Reduction and Compression}: Complete the proof reduction and compression algorithm for Layer 1, allowing contract storage updates with new balances and tokens;
-	      \vspace{-0.11in}
-	\item \textbf{Rollup System Optimization}: Optimize the Rollup System to reduce witness and proof generation times. This can be achieved by ZoKrates program optimization and performance evaluations on different CPU types and architectures;
-	      \vspace{-0.11in}
-	\item \textbf{Rollup System Cost}: Study infrastructure operation costs to evaluate a fair transaction fee to reward nodes submitting valid proofs.
-	      \vspace{-0.11in}
-\end{itemize}
+In this chapter the implementation of the Rollup System is evaluated.
+\todo[inline]{Write something}
 
 
+% Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
+
+\section{Test Environment\label{sec:testenvir}}
+
+ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52. When elsewhere specified it has been used a Google Cloud Platform virtual machine with 12 vCPU Intel Haswell, 256GB of RAM and 300 GB of SSD. This machine runs Debian 11.
+
+The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The RPC node used is \url{https://ghostnet.ecadinfra.com/}.
 
 
-% Future work will enhance Component X with new services and features that can be used ...
+\section{Benchmarks\label{sec:benchmarks}}
+
+\subsection{Hash Function\label{subsec:6_hashfunc}}
+
+The hash function decision has been a key point to make the system more responsive and efficient, as the generation of the Merkle Trees and the merging process of balances and nonces rely on it. The initial programs were using sha2-256, but it was too RAM demanding and it was not possible to compile programs with more than 8 users. The implementation of the programs has been changed to use sha3-256, which revealed to be faster: ZoKrates sha2-256, in fact, adds a layer of complexity to the computation because it adds 256 bits of padding to the input, and involves more constraints in the computation. The sha3-256 implementation allowed performance increase without changing the rest of the program, as the inputs size and outputs were the same as sha2-256.
+Finally the hash function has then been changed to Poseidon, which is very zk-SNARK friendly, allowing the compilation of programs up to 2048 users but required some changes in the programs. Figure \ref{fig:6_sheets-benchmarks_hash.png} shows the RAM requirements for each hash function during the compile phase compared to the amount of users and transactions.
+
+\begin{figure}
+	\centering
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-compile.png}
+		\caption[RAM Compile]{RAM compilation phase. \newline x:users y:transactions}
+		\label{fig:6_sheets-resources-requirements-compile.png}
+	\end{minipage}%
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-benchmarks_hash.png}
+		\caption[RAM Usage hash]{RAM for each hash type. \newline x:users-transactions y:RAM}
+		\label{fig:6_sheets-benchmarks_hash.png}
+	\end{minipage}
+\end{figure}
+
+\subsection{ZoKrates Rollup Performance\label{subsec:6_zokratesperf}}
+
+A problem that emerges immediately when compiling the ZoKrates programs are the computational requirements to be able to compute the witness and generate a proof to submit to Layer 1. The usage of the Poseidon hash function allowed the compilation of larger programs with more users and more transactions. Figure \ref{fig:6_sheets-resources-requirements-compile.png} shows the RAM resources needed for the compilation phase of the rollup program. The great complexity increase when adding transactions is due to the fact that the verification of the signature still uses the sha2-256 hash function. Note that the compilation phase is done only once, and the computation of the witness and generation of the proof are much less demanding, but those results show the complexity growth when adding transactions compared to adding users.
+
+\paragraph{Witness Computation}
+
+Figure \ref{fig:6_sheets-resources-requirements-witness.png} shows instead the compute-witness phase, that is done during each rollup computation. This phase executes teh ZoKrates program and produces the witness, that contains the results of the computation. The witness will thn be used to generate the proof of a correct computation. As it's visible from the graph, the amount of RAM used is minimal compared to the compilation phase: this allows the ZoKrates programs to run on entry-level machines, as the compilation output file can be shared as it is computed only once. This low amount of resources used brings also the benefit of fast witness computations time of the rollup programs: in table \ref{tab:6_witness-proof-time} gives a clear view about the time required to compute the witness. An increase of required time to compute the witness is visible when adding many users: the amount of time is almost directly proportional to the number of users in the rollup system. One big advantage ZoKrates offers during the computation of the witness is the capability to work with all the cores available on the machine. This allows an easy way to reduce witness computation time.
+
+\begin{table}
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		Users & Transactions & witness & proof \\ \hline
+		128   & 30           & 1       & 2     \\ \hline
+		128   & 55           & 2       & 4     \\ \hline
+		128   & 70           & 2       & 5     \\ \hline
+		256   & 50           & 2       & 5     \\ \hline
+		1024  & 30           & 11      & 30    \\ \hline
+	\end{tabular}
+	\caption[Witness Proof time]{Witness and proof computation time in minutes.}
+	\label{tab:6_witness-proof-time}
+\end{table}
+
+\paragraph{Proof Generation}
+
+The proof generation phase is more resource demanding: from Figure \ref{fig:6_sheets-resources-requirements-proof.png} it's clear that the amount of RAM needed is about ten times the RAM used for the witness computation. The benchmarks done for the proof generation phase went up to the maximum of 70 GB for 1024 users and 30 transactions. This is still an affordable amount of RAM for a server, but it's important to highlight that the proof generation phase is the most resource demanding phase of the whole rollup computation. A more plausible scenario for a rollup system would have less transactions and more stale users. This increases the proof phase performance, as less transactions bring the possibility to add large amount of users.
+
+\begin{figure}
+	\centering
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-witness.png}
+		\caption[RAM Compile]{RAM witness phase. \newline x:users y:transactions}
+		\label{fig:6_sheets-resources-requirements-witness.png}
+	\end{minipage}%
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-proof.png}
+		\caption[RAM Proof]{RAM proof phase. \newline x:users y:transactions}
+		\label{fig:6_sheets-resources-requirements-proof.png}
+	\end{minipage}
+\end{figure}
+
+\subsection{Tezos Rollup Fees}
+
+The verification performed by the verifier contracts and the subsequent update of the storage have costs. The verification cost is proportional to the size of the proof: during the proof verification, in fact, all the constraints are checked in a loop, consuming gas for each constraint verified. A single Layer 1 transaction between two users, as of 18/08/2023 costs 0.000518 tz.
+
+Figure \ref{fig:6_sheets-cost-comparison.png} shows the fees for a single transaction in different scenarios of Rollup System size. The fees are calculated by submitting a rollup execution proof and looking at the fees paid for the proof verification and the storage update. From the graph it is evident that even with a small Rollup System, the fees are very low and always below the fees of a single L1 transaction. Fees increase only with the increased number of transactions, due to the subsequent proof size increment, as explained in Section \ref{sec:5_redandcompr}, but the more transactions are included in the rollup system the more the fees are reduced.
+
+Tezos fees are independent by the number of users: the proof, in fact, contains no data about the users state, but only the two merkle tree roots. This allows the verifier smart contract not to have to iterate over more proof fields and consume gas.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{6_sheets-cost-comparison.png}
+	\caption[Cost Comparison]{Cost per Transaction using different proof sizes.}
+	\label{fig:6_sheets-cost-comparison.png}
+\end{figure}
+
+\section{Cost Model}
+
+The proposed Rollup System has demonstrated greater efficiency compared to the conventional Layer 1 transaction system. However, there are additional costs that must be considered, including the expenses associated with running Layer 2 servers and the fees required for submitting and verifying proofs. In the current design, these costs are covered by the server initiating the proof. Consequently, the introduction of a fee system for Layer 2 users becomes necessary. It's important to highlight that inactive users on Layer 2 can be problematic, as they inflate the user list, thus increasing the operational costs of the entire rollup system. To address this issue, the implementation of a stale user fee is needed.
+
+\subsection{Stale User Fee}
+
+In order to execute a rollup, it is necessary to retrieve all users to recalculate the new Merkle root and determine the updated balances. As the number of users registering with the system increases, this process becomes slower. ZoKrates programs are capable of handling only powers of 2 numbers of users (including empty users) due to the merkle tree's structural characteristics. This can lead to exponential growth even when the number of users increases by just one.
+
+Upon registering with the rollup system, a user transfers funds from his account to the Manager Smart Contract. This approach allows the Manager Smart Contract to manage user funds by applying fees under specific circumstances. A proposed Fee Model revolves around the concept of a user's last activity, defined as the most recent event of sending or receiving a transaction within the Rollup System. This information can be easily computed by the Manager Smart Contract while updating balances and nonces for senders and receivers after a successful proof verification: using a Big Map in the storage mapped with the same indexes of the main one it can save the last activity with a timestamp. This Big Map doesn't add overhead to the whole system: it is not included in the rollup programs and only the senders and receivers indexes are accessed (and deserialized) after a successful proof verification.
+
+An external server node may periodically retrieve the Big Map of users activity and identify stale accounts. Through a ZoKrates program that is subsequently verified, the server can compute the updated balances while collecting fees on stale accounts. These fees can then be directly transferred to the Rollup Manager Smart Contract, which can utilize them to cover the costs of proof verification and storage updates.
+
+\subsection{Reward System}
+
+Layer 2 Rollup servers consist of two types: Web-Managers and ZoKrates executors. Web-Managers are economical servers, capable of operating with modest hardware specifications. They function as Docker containers hosting a database and NodeJs server. On the other hand, ZoKrates executors are relatively more resource-intensive, requiring a significant amount of RAM for witness computation and proof generation. However, ZoKrates executors possess an advantage: they don't need to run continuously, being only necessary when computing proofs. This enables them to be deployed on a cloud service and activated only as needed. This approach can reduce the costs of Layer 2 operations.
+
+Similar to the role of bakers in the Tezos blockchain when generating blocks, Layer 2 nodes can be rewarded for their contributions in submitting valid proofs. These rewards are extracted from the sender's balance during a rollup transaction. The rewarded amounts are then accredited directly to the Rollup Manager Smart Contract's Layer 1 balance. This enables the Rollup Manager Smart Contract to pay a baker for the proof submission without requiring an update of the Merkle Tree of the balances, because its balance is a direct amount stored in L1.
+
+\subsection{Scalability}
+
+Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. The proposed Rollup System is capable of running in a ideal environment, where there are no spikes of demand and only one server running. If more servers would run a major problem would arise. When the ZoKrates program begins the witness computation it gets as input a state of the rollup system represented by the two merkle roots and by the user Big Map. If a L2 rollup system starts the rollup computation with a set of transactions \textit{A} and submitting a valid proof while another L2 rollup system is still computing another transaction set \textit{B}, the proof of the set \textit{B} will be rejected even if the transactions were applied correctly and they were influencing different users by the set \textit{A}. This is due to the fact that the Manager Smart Contract checks for the input roots of the ZoKrates program to match the roots in its storage, to prove that the initial state was the same and was not altered. This problem has not been solved in this prototype yet.
+
+Here's an initial proposal: the user list can be split in two or more parts, each one having its own merkle root, one for the users public keys and the other for the balances and nonces. Let's pretend we split the users in three groups. The most efficient scenario is that all the transactions involve users from the same group: this would allow the rollup system to run in parallel on three different servers, each one executing ZoKrates program and sending proofs that will interfere with each other. In a real case scenario there will be transactions involving users from different groups, and this will require the rollup system to run on a single server, as the ZoKrates program will change more than one balance and nonce merkle tree. A proposed solution is to have redirected all the transactions within the same group to a single server that manages this particular group, while the transactions with mixed users in another; this decreases the chances of having to recompute the rollup with the newer state fetched from the Manager Smart Contract. This solution is not ideal, as it requires a more complex management of the rollup system, but it's a starting point to improve the scalability of the system.

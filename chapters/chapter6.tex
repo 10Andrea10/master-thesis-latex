@@ -1,119 +1,252 @@
-\chapter{Evaluation\label{cha:chapter6}}
+\chapter{Implementation \label{cha:chapter5}}
 
-In this chapter the implementation of the Rollup System is evaluated.
-\todo[inline]{Write something}
-
-
-% Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
-
-\section{Test Environment\label{sec:testenvir}}
-
-ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52. When elsewhere specified it has been used a Google Cloud Platform virtual machine with 12 vCPU Intel Haswell, 256GB of RAM and 300 GB of SSD. This machine runs Debian 11.
-
-The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The RPC node used is \url{https://ghostnet.ecadinfra.com/}.
-
-
-\section{Benchmarks\label{sec:benchmarks}}
-
-\subsection{Hash Function\label{subsec:6_hashfunc}}
-
-The hash function decision has been a key point to make the system more responsive and efficient, as the generation of the Merkle Trees and the merging process of balances and nonces rely on it. The initial programs were using sha2-256, but it was too RAM demanding and it was not possible to compile programs with more than 8 users. The implementation of the programs has been changed to use sha3-256, which revealed to be faster: ZoKrates sha2-256, in fact, adds a layer of complexity to the computation because it adds 256 bits of padding to the input, and involves more constraints in the computation. The sha3-256 implementation allowed performance increase without changing the rest of the program, as the inputs size and outputs were the same as sha2-256.
-Finally the hash function has then been changed to Poseidon, which is very zk-SNARK friendly, allowing the compilation of programs up to 2048 users but required some changes in the programs. Figure \ref{fig:6_sheets-benchmarks_hash.png} shows the RAM requirements for each hash function during the compile phase compared to the amount of users and transactions.
-
-\begin{figure}
-	\centering
-	\begin{minipage}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-compile.png}
-		\caption[RAM Compile]{RAM compilation phase. \newline x:users y:transactions}
-		\label{fig:6_sheets-resources-requirements-compile.png}
-	\end{minipage}%
-	\begin{minipage}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{6_sheets-benchmarks_hash.png}
-		\caption[RAM Usage hash]{RAM for each hash type. \newline x:users-transactions y:RAM}
-		\label{fig:6_sheets-benchmarks_hash.png}
-	\end{minipage}
-\end{figure}
-
-\subsection{ZoKrates Rollup Performance\label{subsec:6_zokratesperf}}
-
-A problem that emerges immediately when compiling the ZoKrates programs are the computational requirements to be able to compute the witness and generate a proof to submit to Layer 1. The usage of the Poseidon hash function allowed the compilation of larger programs with more users and more transactions. Figure \ref{fig:6_sheets-resources-requirements-compile.png} shows the RAM resources needed for the compilation phase of the rollup program. The great complexity increase when adding transactions is due to the fact that the verification of the signature still uses the sha2-256 hash function. Note that the compilation phase is done only once, and the computation of the witness and generation of the proof are much less demanding, but those results show the complexity growth when adding transactions compared to adding users.
-
-\paragraph{Witness Computation}
-
-Figure \ref{fig:6_sheets-resources-requirements-witness.png} shows instead the compute-witness phase, that is done during each rollup computation. This phase executes teh ZoKrates program and produces the witness, that contains the results of the computation. The witness will thn be used to generate the proof of a correct computation. As it's visible from the graph, the amount of RAM used is minimal compared to the compilation phase: this allows the ZoKrates programs to run on entry-level machines, as the compilation output file can be shared as it is computed only once. This low amount of resources used brings also the benefit of fast witness computations time of the rollup programs: in table \ref{tab:6_witness-proof-time} gives a clear view about the time required to compute the witness. An increase of required time to compute the witness is visible when adding many users: the amount of time is almost directly proportional to the number of users in the rollup system. One big advantage ZoKrates offers during the computation of the witness is the capability to work with all the cores available on the machine. This allows an easy way to reduce witness computation time.
-
-\begin{table}
-	\centering
-	\begin{tabular}{|c|c|c|c|}
-		\hline
-		Users & Transactions & witness & proof \\ \hline
-		128   & 30           & 1       & 2     \\ \hline
-		128   & 55           & 2       & 4     \\ \hline
-		128   & 70           & 2       & 5     \\ \hline
-		256   & 50           & 2       & 5     \\ \hline
-		1024  & 30           & 11      & 30    \\ \hline
-	\end{tabular}
-	\caption[Witness Proof time]{Witness and proof computation time in minutes.}
-	\label{tab:6_witness-proof-time}
-\end{table}
-
-\paragraph{Proof Generation}
-
-The proof generation phase is more resource demanding: from Figure \ref{fig:6_sheets-resources-requirements-proof.png} it's clear that the amount of RAM needed is about ten times the RAM used for the witness computation. The benchmarks done for the proof generation phase went up to the maximum of 70 GB for 1024 users and 30 transactions. This is still an affordable amount of RAM for a server, but it's important to highlight that the proof generation phase is the most resource demanding phase of the whole rollup computation. A more plausible scenario for a rollup system would have less transactions and more stale users. This increases the proof phase performance, as less transactions bring the possibility to add large amount of users.
-
-\begin{figure}
-	\centering
-	\begin{minipage}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-witness.png}
-		\caption[RAM Compile]{RAM witness phase. \newline x:users y:transactions}
-		\label{fig:6_sheets-resources-requirements-witness.png}
-	\end{minipage}%
-	\begin{minipage}{.5\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{6_sheets-resources-requirements-proof.png}
-		\caption[RAM Proof]{RAM proof phase. \newline x:users y:transactions}
-		\label{fig:6_sheets-resources-requirements-proof.png}
-	\end{minipage}
-\end{figure}
-
-\subsection{Tezos Rollup Fees}
-
-The verification performed by the verifier contracts and the subsequent update of the storage have costs. The verification cost is proportional to the size of the proof: during the proof verification, in fact, all the constraints are checked in a loop, consuming gas for each constraint verified. A single Layer 1 transaction between two users, as of 18/08/2023 costs 0.000518 tz.
-
-Figure \ref{fig:6_sheets-cost-comparison.png} shows the fees for a single transaction in different scenarios of Rollup System size. The fees are calculated by submitting a rollup execution proof and looking at the fees paid for the proof verification and the storage update. From the graph it is evident that even with a small Rollup System, the fees are very low and always below the fees of a single L1 transaction. Fees increase only with the increased number of transactions, due to the subsequent proof size increment, as explained in Section \ref{sec:5_redandcompr}, but the more transactions are included in the rollup system the more the fees are reduced.
-
-Tezos fees are independent by the number of users: the proof, in fact, contains no data about the users state, but only the two merkle tree roots. This allows the verifier smart contract not to have to iterate over more proof fields and consume gas.
+This chapter describes the implementation details, including the structural decisions and  encountered development challenges, of the Rollup System based on the system described at \ref{sec:2_adspProject}. Figure \ref{fig:5_drawings-final_rollup_architecture} shows the system's final architecture, clearly distinguishing Layer 1 and Layer 1 components and showing the interactions between them.
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.7\columnwidth]{6_sheets-cost-comparison.png}
-	\caption[Cost Comparison]{Cost per Transaction using different proof sizes.}
-	\label{fig:6_sheets-cost-comparison.png}
+	\includegraphics[width=0.9\columnwidth]{5_drawings-final_rollup_architecture.png}
+	\caption[Rollup Architecture]{Architecture of the Rollup System.}
+	\label{fig:5_drawings-final_rollup_architecture}
 \end{figure}
 
-\section{Cost Model}
+\section{Technologies\label{sec:technologies}}
 
-The proposed Rollup System has demonstrated greater efficiency compared to the conventional Layer 1 transaction system. However, there are additional costs that must be considered, including the expenses associated with running Layer 2 servers and the fees required for submitting and verifying proofs. In the current design, these costs are covered by the server initiating the proof. Consequently, the introduction of a fee system for Layer 2 users becomes necessary. It's important to highlight that inactive users on Layer 2 can be problematic, as they inflate the user list, thus increasing the operational costs of the entire rollup system. To address this issue, the implementation of a stale user fee is needed.
+The blockchain components are constructed utilizing the Tezos blockchain\footnote{\url{https://tezos.com/}} and the SmartPy\footnote{\url{https://smartpy.io/}} smart contract language. The Rollup System is deployed on the Tezos Ghostnet test network.
 
-\subsection{Stale User Fee}
+To design and build the Layer 2 components, web servers are developed using nodejs and Typescript running in Docker containers. The implementation of Rollup programs is achieved through the utilization of the ZoKrates toolbox\footnote{\url{https://github.com/ZoKrates/ZoKrates}}, a comprehensive zk-SNARKs toolkit designed to facilitate the creation of verifiable computation programs.
 
-In order to execute a rollup, it is necessary to retrieve all users to recalculate the new Merkle root and determine the updated balances. As the number of users registering with the system increases, this process becomes slower. ZoKrates programs are capable of handling only powers of 2 numbers of users (including empty users) due to the merkle tree's structural characteristics. This can lead to exponential growth even when the number of users increases by just one.
+The interaction between the Layer 2 and Layer 1 is made possible through the utilization of the Taquito\footnote{\url{https://tezostaquito.io/}} library, a TypeScript library that provides a simple interface for interacting with the Tezos blockchain.
 
-Upon registering with the rollup system, a user transfers funds from his account to the Manager Smart Contract. This approach allows the Manager Smart Contract to manage user funds by applying fees under specific circumstances. A proposed Fee Model revolves around the concept of a user's last activity, defined as the most recent event of sending or receiving a transaction within the Rollup System. This information can be easily computed by the Manager Smart Contract while updating balances and nonces for senders and receivers after a successful proof verification: using a Big Map in the storage mapped with the same indexes of the main one it can save the last activity with a timestamp. This Big Map doesn't add overhead to the whole system: it is not included in the rollup programs and only the senders and receivers indexes are accessed (and deserialized) after a successful proof verification.
+Those technologies were already decided at the time of the project's inception, as they were the most suitable for the project's objectives. The Tezos blockchain was chosen due to its easy development and deployment, as well as the missing Layer 2 solutions.
 
-An external server node may periodically retrieve the Big Map of users activity and identify stale accounts. Through a ZoKrates program that is subsequently verified, the server can compute the updated balances while collecting fees on stale accounts. These fees can then be directly transferred to the Rollup Manager Smart Contract, which can utilize them to cover the costs of proof verification and storage updates.
+\section{Repeated Transactions Attack}
+\label{sec:repeatedtransactionsattack}
 
-\subsection{Reward System}
+To mitigate the risk of an attacker initiating repeated transactions, the nonce mechanism has been introduced: each account holds a nonce, stored on Layer 1. When a transaction is submitted, it must include a nonce incremented by one, thereby facilitating the validation of transaction execution history.
 
-Layer 2 Rollup servers consist of two types: Web-Managers and ZoKrates executors. Web-Managers are economical servers, capable of operating with modest hardware specifications. They function as Docker containers hosting a database and NodeJs server. On the other hand, ZoKrates executors are relatively more resource-intensive, requiring a significant amount of RAM for witness computation and proof generation. However, ZoKrates executors possess an advantage: they don't need to run continuously, being only necessary when computing proofs. This enables them to be deployed on a cloud service and activated only as needed. This approach can reduce the costs of Layer 2 operations.
+Within the ZoKrates environment, proving the usage of updated balances and nonces necessitates computation of a merkle tree for the provided balance and nonce lists. This implies calculating two full binary trees, thereby increasing complexity. A workaround involves concatenating and hashing balances and nonces for individual users, forming a single merkle tree of these concatenated values. This approach incurs only the complexity of the concatenation function, involving a number of hashes equivalent to the number of accounts, but still allowing to proof that the balances and nonces are updated.
 
-Similar to the role of bakers in the Tezos blockchain when generating blocks, Layer 2 nodes can be rewarded for their contributions in submitting valid proofs. These rewards are extracted from the sender's balance during a rollup transaction. The rewarded amounts are then accredited directly to the Rollup Manager Smart Contract's Layer 1 balance. This enables the Rollup Manager Smart Contract to pay a baker for the proof submission without requiring an update of the Merkle Tree of the balances, because its balance is a direct amount stored in L1.
+Changes were introduced to the rollup execution to incorporate the computation of new nonces alongside new balances. It's essential that ZoKrates receives transactions ordered by nonce for each user. While transactions from diverse users can be received, those from a single user must be ordered by nonce. The algorithm for verifying transaction nonces and calculating new nonces is as follows:
+\begin{itemize}
+	\item Initialize \textit{nonce\_array} and \textit{balance\_array}, with the current nonces and balances of all users;
+	\item Iterate through the transactions:
+	      \begin{itemize}
+		      \item Check in \textit{nonce\_array} if the transaction nonce equals the sender's nonce plus one;
+		      \item If true:
+		            \begin{itemize}
+			            \item Increment senders's nonce in array \textit{nonce\_array};
+			            \item Decrement sender's balance in array \textit{balance\_array};
+			            \item Increment receiver's balance in array \textit{balance\_array};
+			            \item Proceed to next transaction;
+		            \end{itemize}
+		      \item If false:
+		            \begin{itemize}
+			            \item Fail program execution.
+		            \end{itemize}
+	      \end{itemize}
+\end{itemize}
 
-\subsection{Scalability}
+This approach accommodates multiple transactions from the same user, preventing duplicate transaction execution.
 
-Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. The proposed Rollup System is capable of running in a ideal environment, where there are no spikes of demand and only one server running. If more servers would run a major problem would arise. When the ZoKrates program begins the witness computation it gets as input a state of the rollup system represented by the two merkle roots and by the user Big Map. If a L2 rollup system starts the rollup computation with a set of transactions \textit{A} and submitting a valid proof while another L2 rollup system is still computing another transaction set \textit{B}, the proof of the set \textit{B} will be rejected even if the transactions were applied correctly and they were influencing different users by the set \textit{A}. This is due to the fact that the Manager Smart Contract checks for the input roots of the ZoKrates program to match the roots in its storage, to prove that the initial state was the same and was not altered. This problem has not been solved in this prototype yet.
+The rollup execution complexity experiences minimal rise, as the nonce check coincides with balance calculation in the same loop, facilitating direct array access and preserving an O(n) complexity.
 
-Here's an initial proposal: the user list can be split in two or more parts, each one having its own merkle root, one for the users public keys and the other for the balances and nonces. Let's pretend we split the users in three groups. The most efficient scenario is that all the transactions involve users from the same group: this would allow the rollup system to run in parallel on three different servers, each one executing ZoKrates program and sending proofs that will interfere with each other. In a real case scenario there will be transactions involving users from different groups, and this will require the rollup system to run on a single server, as the ZoKrates program will change more than one balance and nonce merkle tree. A proposed solution is to have redirected all the transactions within the same group to a single server that manages this particular group, while the transactions with mixed users in another; this decreases the chances of having to recompute the rollup with the newer state fetched from the Manager Smart Contract. This solution is not ideal, as it requires a more complex management of the rollup system, but it's a starting point to improve the scalability of the system.
+\section{Hash Function}
+
+Hash functions play a crucial role in the Rollup execution process. They are extensively used for various tasks such as creating Merkle Trees, concatenating balances and nonces, and verifying signatures. One widely supported hashing function in this context is SHA-256. The initial implementation of the Rollup system employed the SHA-256 function provided by the ZoKrates toolbox. However, as demonstrated in Section \ref{subsec:6_hashfunc}, the use of this function introduces a significant number of constraints to the compiled Zokrates program, resulting in exponential complexity during execution. This inefficiency arises from the fact that classical cryptographic schemes predominantly consist of boolean operations, which become inefficient within a ZK-SNARK circuit \cite{belles-munoz_twisted_2021}.
+
+A more recent hash function, known as Poseidon \cite{grassi_poseidon_2021}, has been developed with a specific focus on efficiency within zk-SNARK circuits. By transitioning the Rollup system's hash function from SHA-256 to Poseidon, the number of constraints added to the program has been reduced by a factor of 100.
+
+Notably, the adoption of the Poseidon hash function necessitates a revision of the system storage. While SHA-256 operates on 256-bit blocks, Poseidon operates on field sizes defined by the underlying elliptic curve. Additionally, considering the process of signature verification, the payload of a signed message must be hashed to fit a predetermined size prior to verification. In the case of Zokrates signature verification, which expects 512 bits of data, padding must be added after hashing the payload with Poseidon. This is due to the fact that the bls12\_381 curve on ZoKrates operates on a 254-bit field size. To meet the expected size, a padding of 258 bits, filled with zeros, is appended to the right of the payload's hash.
+
+The signature verification, done for each transaction, still uses sha2 hashes, as enforced by Ed25519 standard. This means that the signature verification may be considered a bottleneck for the system, as better shown in Section \ref{subsec:6_zokratesperf}. A future and possible s
+
+\section{Proof Reduction and Compression \label{sec:5_redandcompr}}
+
+When setting up ZoKrates' private and verification keys, it's important to remember that the key sizes depend on the number of outputs in the ZoKrates program. When you run a Rollup, these outputs represent the updated Merkle Tree that combines balances and nonces, along with the list of balances and nonces. These values are crucial for updating the inner storage of the Manager Smart Contract on Layer 1. As explained in Section \ref{sec:3_smartContractsRequirements}, everything sent to the blockchain must be no more than 32768 bytes in total.
+
+As more users and transactions come into play, proof size grows, causing the keys to also become larger. Unfortunately, this situation makes it impossible to send the proof to the Rollup Smart Contract, which essentially breaks the system. To address this, a potential solution is to find a way to shrink and compress the outputs produced by the zokrates program.
+
+Implementing this solution would allow the system to handle a higher number of users and transactions since the proof size would be smaller. Table \ref{tab:5_keyandproofsize} shows an example of what the algorithm could achieve in a system with 1024 users and 3 transactions
+
+\begin{table}
+	\centering
+	\begin{tabular}{|l|c|c|}
+		\hline
+		                 & Without algorithm & With algorithm \\
+		\hline
+		Verification key & 462KB             & 5,5KB          \\
+		\hline
+		Proof            & 151KB             & 2,1KB          \\
+		\hline
+	\end{tabular}
+	\caption[Key and Proof size]{Key and Proof size comparison using 1024 users and 3 transactions}
+	\label{tab:5_keyandproofsize}
+\end{table}
+
+\subsection{Proof Reduction}
+
+To achieve a reduction in the number of outputs from the ZoKrates program, a change is made in the program's logic. Instead of returning the entire list of balances and nonces, the program only returns the altered balances and nonces. This adjustment introduces the requirement for an index that can be used to identify users in the list.
+
+For every transaction, certain information needs to be returned: the sender's index, balance, and nonce, as well as the receiver's index and balance. In a hypothetical rollup system with 4096 users and 128 transactions per rollup, the outputs of the ZoKrates program shrink from 8193 to 641 (inclusive of the Merkle Root). This reduction significantly cuts down the proof size. Notably, in a Rollup system, many users remain inactive, participating infrequently in the rollup. This dynamic creates a considerable gap between the registered user count and the number of transactions, which enables this mechanism.
+
+Furthermore, this approach proves more advantageous when a single user initiates multiple transactions to the same recipient, as the sender's index and balance are only returned once.
+
+\subsection{Proof Compression \label{subsec:5_compression}}
+
+ZoKrates allows operating on fields of size 254 bits. The proof itself is made up of entries in these fields, no matter the original type of value. Even a simple boolean or a 254-bit value gets represented using just one field entry. This applies to lists of changed indexes, balances, and nonces too. When returning the list of modified indexes, balances and nonces each of them will occupy a single field value for just 32 bits of information.
+
+By combining indexes, balances, and nonces into one field value, we can fit more info in a single entry. This merging cuts down the number of field entries returned from the ZoKrates program, which in turn shrinks the proof size. Here's a snippet of how this compression works within the ZoKrates program:
+
+\begin{lstlisting}[language=C++]
+field[NUM_TRANSACTIONS] mut result = [0; NUM_TRANSACTIONS];
+for u32 i in 0..NUM_TRANSACTIONS {
+  // Calculate new balances and nonce
+  ......
+  // Compress indexes, balances, and nonces
+  bool[32] index_send_bits = u32_to_bits(index_sender);
+  bool[32] balance_send_bits = u32_to_bits(balance_sender);
+  bool[32] nonce_send_bits = u32_to_bits(nonce_sender);
+  bool[32] index_rec_bits = u32_to_bits(index_receiver);
+  bool[32] balance_rec_bits = u32_to_bits(balance_receiver);
+  bool[254] joined = [
+    ...index_send_bits, ...balance_send_bits,
+    ...nonce_send_bits, ...[false; 94],
+    ...index_rec_bits, ...balance_rec_bits
+  ];
+  result[i] = pack(joined);
+}
+\end{lstlisting}
+
+This process returns one field value for each transaction. The first 96 bits hold sender-related data, followed by a 94-bit padding, and then 64 bits for receiver-related data.
+
+Another possible way to improve this mechanism is by concatenating all the data into one bit array, and then taking 254-bit chunks from it to create field values, saving up in the padding bits.
+
+To get back the original values, the Smart Contract needs to decompress the field data applying the reverse algorithm. At the moment, the ability to retrieve the 32 bit chunks from the field values is there, but the current SmartPy version lacks converting from Bytes to Nat. When that feature comes in, it will be possible to restore original values from field values. The upcoming benchmarks will also account for an estimated gas cost of this value conversion by adding an useless conversion.
+
+\section{Storage\label{sec:5_storage}}
+
+Initially, the storage was designed with the intention of accommodating a limited number of users, employing a standard Map. Standard maps in Tezos are always deserialized at every contract execution, even if the elements of the map will not be used. This approach is suitable for debugging or where there is the need of iterating through the entire map without knowing its size.
+
+With scalability as a focal point, the storage structure was updated to handle a growing user base through the adoption of a Big Map. This change is pivotal, due that the Big Map is lazily deserialized\footnote{\url{https://tezos.gitlab.io/michelson-reference/\#type-big_map}}, avoiding the waste of gas during contract calls to deserialize the entire accounts Map. It is, in fact, a dangerous issue, as the gas limit could be reached before the contract is deserialized, making it unusable as described in \ref{subsec:gasLimit}.
+
+This adjustment is possible due to the fact that in the rollup system users are mapped using a natural number, allowing for the big map to be accessed by the users indexes specified in the transactions..
+
+\section{ZoKrates Separate Execution}
+The execution of ZoKrates programs demands substantial resources, as evidenced in Section \ref{sec:benchmarks}. As a consequence, executing ZoKrates programs is allocated to a distinct server. This server operates as an independent entity, called upon by Web-Manager. This strategy serves the dual purpose of optimizing resource allocation and facilitating scalability. Specifically, the architecture enables the isolation of resource-intensive tasks to a separate server, allowing efficient utilization and the ability to scale individual components as needed. It is also possible to have different machine types for each ZoKrates program, since every program has different requirements, further optimizing resource allocation.
+
+The approach of running ZoKrates programs directly on the machine is chosen to mitigate the introduction of overhead stemming from OS-level virtualization, particularly relevant in scenarios involving pre-existing virtualized environments, such as cloud computing contexts.
+
+\section{New Features Implementation}
+
+This section details the implementation of the new features of the project, including the problems encountered and the solutions devised.
+
+\subsection{Registration and Deregistration}
+
+This section explains the registration and deregistration procedures for users. The primary objective is to add and remove users from storage, creating empty user entries during deregistration. This approach maintains user positioning within storage, allowing utilization of existing indexes.
+
+Tezos supports optional types, allowing a value to be set as None, indicating its absence. This feature proves to be useful when removing users from storage. The new storage Big Map, representing registered users, now consists of:
+\begin{itemize}
+	\item \textbf{Index}: A natural number representing the user's index within storage;
+	\item \textbf{Mutez balance}: The user's balance;
+	\item \textbf{Nonce}: The user's nonce;
+	\item \textit{optional} \textbf{Public key}: The user's public key.
+\end{itemize}
+
+Given the resource-intensive nature of merkle tree generation, registration and deregistration processes are executed within dedicated ZoKrates programs and not in the smart contracts.
+
+\subsubsection{Registration\label{subsec:registration}}
+
+To register a new user, the two Merkle Trees of public keys and the concatenated balances and nonces must be recomputed, integrating the new user's public key, balance, and nonce. A ZoKrates program performs this computation, returning the new root hashes of both Merkle Trees. These hashes are then used by the manager smart contract to update the storage, updating the roots and the users. The ZoKrates program requires the precise index for inserting the new user's data. This position is determined externally by the Web Manager, which can communicate with an RPC to identify the first vacant slot within the storage's Big Map. The registration process verifies if the designated position holds an account with an empty key, balance, and nonce set to zero. Afterwards the user's nonce is set to one, balance to zero, and public key to the user's public key.
+
+\subsubsection{Deregistration}
+
+Deregistration closely follows the registration process outlined in Section \ref{subsec:registration}. The ZoKrates deregistration program takes the user's index to be deregistered, along with other common inputs such as the Merkle Tree roots and the user list. This program sets the user's public key to None, balance to zero, and nonce to zero. The updated root hashes of both Merkle Trees are returned by the deregistration program. The manager contract then applies these new roots to update storage, removing the user entry at the specified index setting it to the optional value None.
+
+\subsection{Deposit\label{subsec:deposit}}
+The deposit process into the Layer 2 system is intricate due to the requirement of recalculating the merkle tree involving balances and nonces. As a result, the deposit procedure is divided into two distinct phases: the initial phase involves transferring funds from the user's account to the manager smart contract via a dedicated entrypoint call in the contract; the subsequent phase involves executing a ZoKrates program to recompute the merkle tree of balances and nonces, allowing the new root of the tree to be updated to the Layer 1. Figure \ref{fig:5_drawings-sequence_deposit.png} illustrates the deposit process.
+
+\subsubsection{Phase 1: Transferring Funds to Manager Contract}
+The deposit process is initiated by the user, who invokes the \textit{deposit} entrypoint within the Rollup Manager contract and specifies his account index within the user Big Map. This entrypoint call expects some L1 tokens to be transferred to the Rollup Manager L1 balance. Additionally, an internal record of pending deposits is maintained in a queue in the storage of the Manager contract.
+
+This internal deposit record has the structure of a \textit{Map(nat:mutez)}, where the key corresponds to the user's index in the user Big Map, and the value represents the sum of funds transferred for the deposit. This configuration allows the acceptance of multiple deposits from a single user, effectively having only the total deposit amounts.
+
+Once the first phase is concluded, the user remains unable to spend the transferred sum until the end of the second phase.
+
+\subsubsection{Phase 2: Merkle Tree Recalculation}
+The second phase is initiated by a Web Manager that detects a considerable accumulation of deposits in the deposit queue. Subsequently, the Web Server accesses the deposit list and executes the ZoKrates program responsible for recalculating the merkle tree inclusive of the new deposits. Following this computation, the Web server calls the \textit{receive\_deposit\_proof} entrypoint within the Rollup Manager contract, providing the freshly computed merkle tree root as a parameter. Consequently, the manager contract updates the root of the merkle tree associated with balances and nonces, adjusts user balances to incorporate the deposited funds, and finally removes the deposits from the internal pending deposit list.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{5_drawings-sequence_deposit.png}
+	\caption[Sequence Deposit]{Sequence Diagram of Deposit Process}
+	\label{fig:5_drawings-sequence_deposit.png}
+\end{figure}
+
+\subsection{Withdraw}
+This section presents the Withdrawal process, enabling the movement of funds from the Layer 2 system to Layer 1. The withdrawal process differs from the deposit process discussed  in Section \ref{subsec:deposit}. Notably, withdrawals operate in a single phase, a strategic choice that accelerates the withdrawal procedure, enabling users to quickly retrieve their funds without the necessity of reaching a threshold of users in the withdrawal queue.
+
+The withdrawal starts as a user sends a withdrawal request to the Web Manager. Subsequently, the Web Manager retrieves the user's balance and nonce from the manager contract and generates withdrawal inputs for the dedicated ZoKrates program. This ZoKrates program performs the computation of the new root hash for the merkle tree containing balances and nonces. This computation involves the subtraction of the user-specified amount. The computed new root hash is then sent back to the Web server. In turn, it calls the \textit{receive\_withdrawal\_proof} entrypoint within the manager smart contract providing the new root hash as parameter.
+
+Within the manager contract, the merkle tree root hash undergoes an update, alongside adjustments to the user's balance and nonce. Subsequently, the requested sum is transferred to the user's account, finalizing the withdrawal process.
+
+\section{HTTP API}
+
+This section explains the HTTP API, which serves as interface connecting users with the Web Manager server. It is the only way through which users can interact with the Rollup System, as direct interaction with the Rollup Manager Smart Contract is restricted, with the exception of deposits which are initiated by users calling the \textit{deposit} entrypoint. Figure \ref{fig:5_drawings-final_rollup_architecture} shows the HTTP API as a component living within the Web-Manager. Web-Manager, in fact, runs a Node.js server exposing the API to users. This component is responsible for exposing the following endpoints:
+\vspace{-0.11in}
+\begin{itemize}
+	\item \textbf{User Registration}: Users can register to the system by sending a PUT request to the \textit{/user} endpoint. The request must include the user's public key and the desired position index within the user Big Map;
+	      \vspace{-0.11in}
+	\item \textbf{User Deregistration}: Users can deregister from the system by sending a DELETE request to the \textit{/user} endpoint. The request must contain the user's index in the user Big Map;
+	      \vspace{-0.11in}
+	\item \textbf{Execute Deposits}: A node can initiate the deposit execution by sending a POST request to the \textit{/deposit} endpoint;
+	      \vspace{-0.11in}
+	\item \textbf{Withdraw}: Users can withdraw funds from the system by sending a POST request to the \textit{/withdraw} endpoint. The request must specify the user's index in the user Big Map and the amount to withdraw;
+	      \vspace{-0.11in}
+	\item \textbf{Add Transaction}: Users can add a transaction to the system by sending a POST request to the \textit{/transaction} endpoint. The request must contain the sender's index in the user Big Map, the receiver's index in the user Big Map, the transfer amount and the nonce;
+	      \vspace{-0.11in}
+	\item \textbf{Execute Rollup}: A node can initiate a rollup execution by sending a POST request to the \textit{/rollup} endpoint.
+\end{itemize}
+
+\noindent All the routes described utilize Taquito to retrieve the necessary data for execution from the Rollup Manager Smart Contract. They then perform the conversion of the data into the format required by the ZoKrates program, and send the inputs to the ZoKrates server. The ZoKrates server then executes the program and returns the proof to the Web-Manager, which forwards it to the Rollup Manager Smart Contract for verification and storage update.
+
+Transactions are temporary stored in a mongoDB database, before being sent to the ZoKrates server. This is done to prevent transaction loss in case of server crashes. It's important to note that a user must send batches of transactions to the same Web-Manager server, as the database is not shared among multiple nodes. Transactions will be rejected if this requirement is not met due to the nonce check.
+
+All the interactions initiated by a user must include a signature: the signature uses as input payload the inputs required by the invoked entrypoint, hashed using Poseidon Hash. This enables the ZoKrates program to verify the signature by hashing the inputs to verify the original payload and then verify the signature.
+
+\section{Non Fungible Tokens Support}
+
+Tezos suggests the use of the standard TZIP-12 \footnote{\url{https://tzip.tezosagora.org/proposal/tzip-12/}} for creating multi-purpose contracts able to mint tokens, including NFTs. The tokens hold some metadata, that is a map between a string and some bytes, representing strings in UTF-8. The metadata is used, for instance, to set the \textit{artifactUri}, in order to link the NFT token to the IPFS system where the artifact is stored. This simplicity allows an easy integration with the previously described Rollup System.
+
+\subsection{Changes in Storage}
+
+The storage of the Rollup Manager Smart Contract must be adjusted to allow storing NFT tokens. Given that NFTs can have varying quantities, it's crucial to keep track of which and how many NFTs are owned by each user. To uniquely identify a NFT a natural number is sufficient: during minting, a single number is permanently associated and represents the NFT. The primary storage change occurs in the balance field: from a natural number, it becomes a Big Map of natural numbers corresponding to the NFT ID, with their respective ownership amounts. Even with a large number of users, this change minimally affects the gas usage. As described in Section \ref{sec:5_storage} Big Maps are lazily deserialized, so only the affected tokens in a rollup are loaded in memory, saving up in gas usage.
+
+\subsection{ZoKrates Programs}
+
+ZoKrates Programs must also be modified to allow NFT swaps instead of regular tokens. This is possible by fetching the storage and converting the Big Map representing the state in the following way:
+\begin{itemize}
+	\item The nonce list remains unchanged;
+	\item The inner Big Map is converted to a list of pairs, where the first element is the NFT ID and the second is the amount of NFTs owned by the user;
+	\item The public key list remains unchanged.
+\end{itemize}
+
+Applying this conversion allows the ZoKrates program to have a full state of the NFTs owned by each user, and to perform swaps between users. The conversion takes place in the Web Manager, prior to sending inputs to the ZoKrates server. The number of outputs, and hence the size of the verification key, remains constant. This is made possible by the conversion and reduction mechanism described in Section \ref{sec:5_redandcompr}, which is still applicable due to the free space in the field entry, previously reserved as padding. They are in fact needed 32 bit taken from the padding to represent the token type object of the transfer.
+
+\subsection{Rollup Manager Contract}
+
+When a Rollup proof is received by the Rollup Manager Contract it will be sent to the respective verification contract. The verification process is independent of what the proof contains, so no changes must be done on the proof verification side. Once the proof has been verified, the internal storage must be updated to save the new state. It is possible by extracting from each field value in the proof the following fields:
+\vspace{-0.11in}
+\begin{itemize}
+	\item \textbf{Sender Index}: The index of the sender in the user Big Map;
+	      \vspace{-0.11in}
+	\item \textbf{Sender Balance}: The balance of the sender;
+	      \vspace{-0.11in}
+	\item \textbf{Sender Nonce}: The nonce of the sender;
+	      \vspace{-0.11in}
+	\item \textbf{Token Index}: The index of the transferred token in the Smart Contract Token List;
+	      \vspace{-0.11in}
+	\item \textbf{Receiver Index}: The index of the receiver in the user Big Map;
+	      \vspace{-0.11in}
+	\item \textbf{Receiver Balance}: The balance of the receiver;
+\end{itemize}
+Using those elements it's possible for the Manager Contract to access directly to the values of the big maps in the storage and update them accordingly.
