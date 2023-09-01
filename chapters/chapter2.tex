@@ -8,13 +8,21 @@ A blockchain consists of a distributed ledger that maintains an ever-expanding s
 
 The operation of blockchains usually take place on a peer-to-peer network. In this network, nodes collaborate following a consensus algorithm protocol to include and verify new blocks. Blockchains are often perceived as secure, while it's known that blockchain records might not be entirely immutable due to the potential of blockchain forks: cases when two valid blocks with the same parent are produced and two valid branch co-exist for a short period of time \cite{goldberg_short_2019}.
 
-\todo[inline]{Tezos}
+\section{Tezos}
+
+Tezos \cite{allombert_introduction_2019} is a relatively new blockchain, based on the proof-of-stake consensus. The main proprieties of this blockchain are:
+\begin{itemize}
+      \vspace{-0.11in}
+      \item \textbf{Self amending blockchain}: this pro
+\end{itemize}
 
 \section{Hash Function \& Merkle Tree}
 
 A hash function is a fundamental cryptographic tool. A one way hash function F is one which is easy to compute but difficult to invert and can map arbitrarily large data fields onto much smaller ones. If $y = F(x)$, then given $x$ and $F$, it is easy to compute $y$, but given $y$ and $F$ it is effectively impossible to compute $x$ \cite{merkle_secrecy_1979}. Many implementations exist, varying by the collision resistance property, performance, and security. Some of the most used hash functions are MD5, sha2 family and sha3.
 
 A possible application of one way hashing functions useful for this master thesis is the Merkle Tree. Merkle Tree have been introduced in \cite{merkle_secrecy_1979} and consist in binary tree, where leafs is simple raw data, and the nodes are the one way hash of the two child subtrees roots concatenated. This structure allows to verify the integrity of the data, storing only a single hash. In fact, if the root hash is known, it's possible to verify if a specific data is part of the tree, by recomputing the Merkle Tree and comparing the root hash with the one stored.
+
+In recent times new Hash functions have been designed in order to be more efficient when executed in a Zero Knowledge environment. \cite{grassi_poseidon_2021} is one of the most recent and efficient one: it is considered a `sponge hash' because has a variable number of inputs and outputs, depending on the environment where the hash is executed. It allows for a minimal complexity increase for each hash executed. It can perform 200 times more efficiently than the sha256 hash function and allows for a customization of security and throughput based on the needs.
 
 \section{Zero Knowledge Proofs \& zkSnark}
 
