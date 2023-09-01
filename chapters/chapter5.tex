@@ -1,8 +1,15 @@
-\chapter{Design\label{cha:chapter4}}
-This chapter presents the architectural design choices of the Rollup System. The Rollup System comprises Layer 1 components and Layer 2 components. The Layer 1 components encompass the Rollup smart contracts, while the Layer 2 components consist of the rollup programs and Web servers.
+\chapter{Design\label{cha:chapter5}}
+This chapter presents the architectural design choices of the Rollup System. The Rollup System comprises Layer 1 components and Layer 2 components. Layer 1 components consist of Rollup smart contracts, while the Layer 2 components are the rollup programs and Web servers.
 
 \section{Overview}
-\todo[inline]{Put a general architecture schema}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=0.9\columnwidth]{5_drawings-L1_L2_architecture_general.png}
+  \caption{Design Overview}
+  \label{fig:5_drawings-L1_L2_architecture_general}
+\end{figure}
+
+The system is mainly composed by two separate environments: Layer 1, situated on top of the blockchain, performing Rollup state management and proof verification; and Layer 2, operating on standard machines, responsible for processing transaction batches and generating proofs. Layer 1 is heavily influenced by the technologies used, as smart contracts must face with many blockchain platform constraints, such as gas limits, storage limits, and supported data types. In contrast, Layer 2 offers more flexibility, as it is not constrained by the underlying platform. Users interact with the Rollup System by submitting transactions to Layer 2, which is responsible for their execution. Transaction execution occurs within a resource-intensive zero-knowledge context, dependent on the complexity of the program and toolbox used.
 
 \section{Layer 1\label{sec:designLayer1}}
 Layer 1 primarily consists of the rollup smart contracts. These contracts are divided into verifier contracts and a manager contract. The verifier contracts handle rollup proof verification, while the manager contract stores the rollup state and serves as a gateway, invoking the verifiers for proof verification.
@@ -18,8 +25,8 @@ This modular approach enables independent upgrades of verification contracts, ad
 
 Another advantage of separation is reduced gas consumption: each entrypoint loads only the necessary contract code into memory. With separate contracts, the rollup contract loads only the required verifier contract for proof verification, optimizing gas usage.
 
-\subsection{Manager Contract\label{sec:designrollupcontract}}
-The Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it indirectly stores transaction history in the blockchain.
+\subsection{Rollup Manager\label{sec:designrollupcontract}}
+The Rollup Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it indirectly stores transaction history in the blockchain.
 
 Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant verifiers, verifying them, and updating storage with new state. This process is illustrated in the sequence diagram \ref{fig:Layer1sequencediagram}.
 
@@ -37,9 +44,6 @@ Expanding the state defined in Section \ref{sec:2_zkRollups}, the Rollup System'
   \item \textbf{Balances Root}: Root of the Merkle Tree containing account balances;
   \item \textbf{User Map}: Map of registered users, each represented by a user index, public key, and balance.
 \end{itemize}
-
-\paragraph{Proof}
-A structure with proof keys, public program inputs and program outputs. It is generated using a proving key and can be verified only using the corresponding verification key.
 
 \paragraph{Entrypoints}
 Multiple entrypoints optimize gas usage by loading only necessary code. Entrypoints for minimal functionality are:

@@ -1,17 +1,17 @@
-\chapter{Requirements\label{cha:chapter3}}
+\chapter{Context \& Requirements\label{cha:chapter4}}
 The goal of this Master Thesis is to complete the implementation of the Zk-Rollup project, test it under different conditions, evaluate its performances and finally show a proof of concept of the system applied to a real world application. This will bring a good understanding of the rollup system and show how it can be used and applied to other minor blockchain without many adaptations. This differs to other scaling solutions, like the ones described in \cite{yang_review_2020}, because they are developed closely to the blockchain they are applied to, limiting the future possibility to extend that solution.
 
 \section{ADSP Project: Scaling Tezos Blockchain with Zk-Rollups \label{sec:2_adspProject}}
 
 In the Winter Semester 2022/2023 at the University of Berlin, I collaborated with the ADSP (Advanced Distributed Systems Prototype) group on a project. The project's objective was to scale the Tezos blockchain using Zk-Rollups through the ZoKrates toolbox.
 
-The group partially achieved the project's objectives, creating a proof of concept. The system architecture features Layer 1 and Layer 2 components: Layer 1 includes two smart contracts for state management and proof verification; Layer 2 encompasses a node executing transactions within the ZoKrates program, generating proofs for the smart contract. Figure \ref{fig:2_general_rollup_architecture} offers an overview of the entire system.
+The group partially achieved the project's objectives, creating a proof of concept. The system architecture features Layer 1 and Layer 2 components: Layer 1 includes two smart contracts for state management and proof verification; Layer 2 encompasses a node executing transactions within the ZoKrates program, generating proofs for the smart contract. Figure \ref{fig:3_general_rollup_architecture} offers an overview of the entire system.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.95\columnwidth]{2_drawings-adsp_rollup_architecture.png}
   \caption[Project Architecture]{Project architecture}  
-  \label{fig:2_general_rollup_architecture}
+  \label{fig:3_general_rollup_architecture}
 \end{figure}
 
 The Zk-Rollup execution process occurs as follows:
@@ -28,13 +28,13 @@ The Zk-Rollup execution process occurs as follows:
     \item If the proof is verified, the new balance list is stored in the Manager contract's blockchain storage.
 \end{enumerate}
 
-Figure \ref{fig:2_drawings-adsp_sequence_general.png} illustrates the sequence of events in the Zk-Rollup execution process.
+Figure \ref{fig:3_drawings-adsp_sequence_general.png} illustrates the sequence of events in the Zk-Rollup execution process.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=1\columnwidth]{2_drawings-adsp_sequence_general.png}
   \caption[Sequence Zk-Rollup]{Sequence diagram of the Zk-Rollup execution process.}  
-  \label{fig:2_drawings-adsp_sequence_general.png}
+  \label{fig:3_drawings-adsp_sequence_general.png}
 \end{figure} 
 
 \subsection{Developed Components}
@@ -80,7 +80,7 @@ Numerous aspects of the project remain unfinished, including:
 \end{itemize}
 Furthermore, the project lacks a benchmarking study, a cost analysis and a proof of concept for a real-world application.
 
-\section{Research Questions}
+\section{Problem Refinement}
 
 \subsection{Completing the \textit{Scale Tezos Blockchain with Zk-Rollups} project}
 The first goal of this Master Thesis is to finish the implementation of the Zk-Rollup project started during the Winter Semester 2022/2023 at the University of Berlin. This includes the implementation of all the missing points of the project listed at \ref{subsec:pendingcomponents}. The partially already answered research question for this project is: \textit{How can an efficient Zk-Rollup system be implemented for the Tezos Blockchain?}

@@ -1,12 +1,12 @@
-\chapter{Implementation \label{cha:chapter5}}
+\chapter{Implementation \label{cha:chapter6}}
 
-This chapter describes the implementation details, including the structural decisions and  encountered development challenges, of the Rollup System based on the system described at \ref{sec:2_adspProject}. Figure \ref{fig:5_drawings-final_rollup_architecture} shows the system's final architecture, clearly distinguishing Layer 1 and Layer 1 components and showing the interactions between them.
+This chapter describes the implementation details, including the structural decisions and  encountered development challenges, of the Rollup System based on the system described at \ref{sec:2_adspProject}. Figure \ref{fig:6_drawings-final_rollup_architecture} shows the system's final architecture, clearly distinguishing Layer 1 and Layer 1 components and showing the interactions between them.
 
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.9\columnwidth]{5_drawings-final_rollup_architecture.png}
 	\caption[Rollup Architecture]{Architecture of the Rollup System.}
-	\label{fig:5_drawings-final_rollup_architecture}
+	\label{fig:6_drawings-final_rollup_architecture}
 \end{figure}
 
 \section{Technologies\label{sec:technologies}}
@@ -18,37 +18,6 @@ To design and build the Layer 2 components, web servers are developed using node
 The interaction between the Layer 2 and Layer 1 is made possible through the utilization of the Taquito\footnote{\url{https://tezostaquito.io/}} library, a TypeScript library that provides a simple interface for interacting with the Tezos blockchain.
 
 Those technologies were already decided at the time of the project's inception, as they were the most suitable for the project's objectives. The Tezos blockchain was chosen due to its easy development and deployment, as well as the missing Layer 2 solutions.
-
-\section{Repeated Transactions Attack}
-\label{sec:repeatedtransactionsattack}
-
-To mitigate the risk of an attacker initiating repeated transactions, the nonce mechanism has been introduced: each account holds a nonce, stored on Layer 1. When a transaction is submitted, it must include a nonce incremented by one, thereby facilitating the validation of transaction execution history.
-
-Within the ZoKrates environment, proving the usage of updated balances and nonces necessitates computation of a merkle tree for the provided balance and nonce lists. This implies calculating two full binary trees, thereby increasing complexity. A workaround involves concatenating and hashing balances and nonces for individual users, forming a single merkle tree of these concatenated values. This approach incurs only the complexity of the concatenation function, involving a number of hashes equivalent to the number of accounts, but still allowing to proof that the balances and nonces are updated.
-
-Changes were introduced to the rollup execution to incorporate the computation of new nonces alongside new balances. It's essential that ZoKrates receives transactions ordered by nonce for each user. While transactions from diverse users can be received, those from a single user must be ordered by nonce. The algorithm for verifying transaction nonces and calculating new nonces is as follows:
-\begin{itemize}
-	\item Initialize \textit{nonce\_array} and \textit{balance\_array}, with the current nonces and balances of all users;
-	\item Iterate through the transactions:
-	      \begin{itemize}
-		      \item Check in \textit{nonce\_array} if the transaction nonce equals the sender's nonce plus one;
-		      \item If true:
-		            \begin{itemize}
-			            \item Increment senders's nonce in array \textit{nonce\_array};
-			            \item Decrement sender's balance in array \textit{balance\_array};
-			            \item Increment receiver's balance in array \textit{balance\_array};
-			            \item Proceed to next transaction;
-		            \end{itemize}
-		      \item If false:
-		            \begin{itemize}
-			            \item Fail program execution.
-		            \end{itemize}
-	      \end{itemize}
-\end{itemize}
-
-This approach accommodates multiple transactions from the same user, preventing duplicate transaction execution.
-
-The rollup execution complexity experiences minimal rise, as the nonce check coincides with balance calculation in the same loop, facilitating direct array access and preserving an O(n) complexity.
 
 \section{Hash Function}
 
@@ -129,7 +98,38 @@ Initially, the storage was designed with the intention of accommodating a limite
 
 With scalability as a focal point, the storage structure was updated to handle a growing user base through the adoption of a Big Map. This change is pivotal, due that the Big Map is lazily deserialized\footnote{\url{https://tezos.gitlab.io/michelson-reference/\#type-big_map}}, avoiding the waste of gas during contract calls to deserialize the entire accounts Map. It is, in fact, a dangerous issue, as the gas limit could be reached before the contract is deserialized, making it unusable as described in \ref{subsec:gasLimit}.
 
-This adjustment is possible due to the fact that in the rollup system users are mapped using a natural number, allowing for the big map to be accessed by the users indexes specified in the transactions..
+This adjustment is possible due to the fact that in the rollup system users are mapped using a natural number, allowing for the big map to be accessed by the users indexes specified in the transactions.
+
+\section{Repeated Transactions Attack}
+\label{sec:repeatedtransactionsattack}
+
+To mitigate the risk of an attacker initiating repeated transactions, the nonce mechanism has been introduced: each account holds a nonce, stored on Layer 1. When a transaction is submitted, it must include a nonce incremented by one, thereby facilitating the validation of transaction execution history.
+
+Within the ZoKrates environment, proving the usage of updated balances and nonces necessitates computation of a merkle tree for the provided balance and nonce lists. This implies calculating two full binary trees, thereby increasing complexity. A workaround involves concatenating and hashing balances and nonces for individual users, forming a single merkle tree of these concatenated values. This approach incurs only the complexity of the concatenation function, involving a number of hashes equivalent to the number of accounts, but still allowing to proof that the balances and nonces are updated.
+
+Changes were introduced to the rollup execution to incorporate the computation of new nonces alongside new balances. It's essential that ZoKrates receives transactions ordered by nonce for each user. While transactions from diverse users can be received, those from a single user must be ordered by nonce. The algorithm for verifying transaction nonces and calculating new nonces is as follows:
+\begin{itemize}
+	\item Initialize \textit{nonce\_array} and \textit{balance\_array}, with the current nonces and balances of all users;
+	\item Iterate through the transactions:
+	      \begin{itemize}
+		      \item Check in \textit{nonce\_array} if the transaction nonce equals the sender's nonce plus one;
+		      \item If true:
+		            \begin{itemize}
+			            \item Increment senders's nonce in array \textit{nonce\_array};
+			            \item Decrement sender's balance in array \textit{balance\_array};
+			            \item Increment receiver's balance in array \textit{balance\_array};
+			            \item Proceed to next transaction;
+		            \end{itemize}
+		      \item If false:
+		            \begin{itemize}
+			            \item Fail program execution.
+		            \end{itemize}
+	      \end{itemize}
+\end{itemize}
+
+This approach accommodates multiple transactions from the same user, preventing duplicate transaction execution.
+
+The rollup execution complexity experiences minimal rise, as the nonce check coincides with balance calculation in the same loop, facilitating direct array access and preserving an O(n) complexity.
 
 \section{ZoKrates Separate Execution}
 The execution of ZoKrates programs demands substantial resources, as evidenced in Section \ref{sec:benchmarks}. As a consequence, executing ZoKrates programs is allocated to a distinct server. This server operates as an independent entity, called upon by Web-Manager. This strategy serves the dual purpose of optimizing resource allocation and facilitating scalability. Specifically, the architecture enables the isolation of resource-intensive tasks to a separate server, allowing efficient utilization and the ability to scale individual components as needed. It is also possible to have different machine types for each ZoKrates program, since every program has different requirements, further optimizing resource allocation.
@@ -163,7 +163,7 @@ To register a new user, the two Merkle Trees of public keys and the concatenated
 Deregistration closely follows the registration process outlined in Section \ref{subsec:registration}. The ZoKrates deregistration program takes the user's index to be deregistered, along with other common inputs such as the Merkle Tree roots and the user list. This program sets the user's public key to None, balance to zero, and nonce to zero. The updated root hashes of both Merkle Trees are returned by the deregistration program. The manager contract then applies these new roots to update storage, removing the user entry at the specified index setting it to the optional value None.
 
 \subsection{Deposit\label{subsec:deposit}}
-The deposit process into the Layer 2 system is intricate due to the requirement of recalculating the merkle tree involving balances and nonces. As a result, the deposit procedure is divided into two distinct phases: the initial phase involves transferring funds from the user's account to the manager smart contract via a dedicated entrypoint call in the contract; the subsequent phase involves executing a ZoKrates program to recompute the merkle tree of balances and nonces, allowing the new root of the tree to be updated to the Layer 1. Figure \ref{fig:5_drawings-sequence_deposit.png} illustrates the deposit process.
+The deposit process into the Layer 2 system is intricate due to the requirement of recalculating the merkle tree involving balances and nonces. As a result, the deposit procedure is divided into two distinct phases: the initial phase involves transferring funds from the user's account to the manager smart contract via a dedicated entrypoint call in the contract; the subsequent phase involves executing a ZoKrates program to recompute the merkle tree of balances and nonces, allowing the new root of the tree to be updated to the Layer 1. Figure \ref{fig:6_drawings-sequence_deposit.png} illustrates the deposit process.
 
 \subsubsection{Phase 1: Transferring Funds to Manager Contract}
 The deposit process is initiated by the user, who invokes the \textit{deposit} entrypoint within the Rollup Manager contract and specifies his account index within the user Big Map. This entrypoint call expects some L1 tokens to be transferred to the Rollup Manager L1 balance. Additionally, an internal record of pending deposits is maintained in a queue in the storage of the Manager contract.
@@ -179,7 +179,7 @@ The second phase is initiated by a Web Manager that detects a considerable accum
 	\centering
 	\includegraphics[width=0.7\columnwidth]{5_drawings-sequence_deposit.png}
 	\caption[Sequence Deposit]{Sequence Diagram of Deposit Process}
-	\label{fig:5_drawings-sequence_deposit.png}
+	\label{fig:6_drawings-sequence_deposit.png}
 \end{figure}
 
 \subsection{Withdraw}
@@ -191,7 +191,7 @@ Within the manager contract, the merkle tree root hash undergoes an update, alon
 
 \section{HTTP API}
 
-This section explains the HTTP API, which serves as interface connecting users with the Web Manager server. It is the only way through which users can interact with the Rollup System, as direct interaction with the Rollup Manager Smart Contract is restricted, with the exception of deposits which are initiated by users calling the \textit{deposit} entrypoint. Figure \ref{fig:5_drawings-final_rollup_architecture} shows the HTTP API as a component living within the Web-Manager. Web-Manager, in fact, runs a Node.js server exposing the API to users. This component is responsible for exposing the following endpoints:
+This section explains the HTTP API, which serves as interface connecting users with the Web Manager server. It is the only way through which users can interact with the Rollup System, as direct interaction with the Rollup Manager Smart Contract is restricted, with the exception of deposits which are initiated by users calling the \textit{deposit} entrypoint. Figure \ref{fig:6_drawings-final_rollup_architecture} shows the HTTP API as a component living within the Web-Manager. Web-Manager, in fact, runs a Node.js server exposing the API to users. This component is responsible for exposing the following endpoints:
 \vspace{-0.11in}
 \begin{itemize}
 	\item \textbf{User Registration}: Users can register to the system by sending a PUT request to the \textit{/user} endpoint. The request must include the user's public key and the desired position index within the user Big Map;
