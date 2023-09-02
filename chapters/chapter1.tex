@@ -18,15 +18,25 @@ The gas limit mechanism is essential for preventing infinite loops in a smart co
 
 Enhancing the blockchain's throughput is also directly impacted by the block size, as increasing its size can increase the system's capacity. Nonetheless, a thorough analysis of the consequences of enlarging the block size is necessary, as arbitrary increases can lead to negative effects. For instance, large block sizes may cause network congestion, slower propagation speeds, and an increase in the number of stale blocks—blocks that are not included in the longest chain due to conflicts or concurrency—posing potential security risks \cite{gervais_security_2016}.
 
-This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a Layer 2 solution (L2). This second Layer is entirely run by nodes that are not involved in computing or verifying Layer 1 transactions. This way we are not constrained by limitations imposed by the chain, like the gas limit or block size, but we are free to use a lot more computational power. Rollups, a Layer 2 solution, in fact inject into the blockchain only the result of the computations performed outside the chain, making use of the unconstrained computational availability offered on L2. With this approach it should be possible to achieve higher throughput when congestion occurs and lower transaction fees. 
+This thesis proposes a solution to the scalability problem by introducing a new block-chain Layer that lives on top of the original blockchain. This is called a Layer 2 solution (L2). This second Layer is entirely run by nodes that are not involved in computing or verifying Layer 1 transactions. This way we are not constrained by limitations imposed by the chain, like the gas limit or block size, but we are free to use a lot more computational power. Rollups, a Layer 2 solution, in fact inject into the blockchain only the result of the computations performed outside the chain, making use of the unconstrained computational availability offered on L2. With this approach it should be possible to achieve higher throughput when congestion occurs and lower transaction fees.
 
-\todo[inline]{Include research questions, not in deep}
+This thesis poses three key milestones for achieving the objective of obtaining a functional and efficient Rollup System. These primary objectives can be summarized as follows:
+\begin{itemize}
+    \vspace{-0.11in}
+    \item finalize the zk-rollup project upon which this system is built;
+          \vspace{-0.11in}
+    \item conduct an evaluation, enhancement, and benchmark of the rollup system.
+          \vspace{-0.11in}
+    \item create and build a prototype customized to meet the requirements of an NFT marketplace.
+\end{itemize}\
+
+A deeper explanation about problem statements and research questions is given in Chapter \ref{sec:4_problemrefinement}.
 
 \section{Structure\label{sec:structure}}
 
 \todo[inline]{Change}
 
-This section gives a brief introduction into the main chapters of this thesis. 
+This section gives a brief introduction into the main chapters of this thesis.
 \\
 \\
 \textbf{Chapter \ref{cha:chapter2}} analyzes the current state of the art in the field of blockchain scalability and presents the most relevant related work including the project this thesis is based on.

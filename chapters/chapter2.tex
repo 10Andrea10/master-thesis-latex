@@ -1,6 +1,6 @@
 \chapter{Background}
 
-Ajeje
+This chapter covers the basic concepts crucial for understanding this thesis, providing just the essential information, without having a deep explanation of each topic.
 
 \section{Blockchain}
 
@@ -8,13 +8,18 @@ A blockchain consists of a distributed ledger that maintains an ever-expanding s
 
 The operation of blockchains usually take place on a peer-to-peer network. In this network, nodes collaborate following a consensus algorithm protocol to include and verify new blocks. Blockchains are often perceived as secure, while it's known that blockchain records might not be entirely immutable due to the potential of blockchain forks: cases when two valid blocks with the same parent are produced and two valid branch co-exist for a short period of time \cite{goldberg_short_2019}.
 
-\section{Tezos}
+\subsection{Tezos}
 
 Tezos \cite{allombert_introduction_2019} is a relatively new blockchain, based on the proof-of-stake consensus. The main proprieties of this blockchain are:
 \begin{itemize}
-      \vspace{-0.11in}
-      \item \textbf{Self amending blockchain}: this pro
+      \item \textbf{Self amending blockchain}: the protocol that validates blocks and implements the consensus algorithm can amend itself;
+            \vspace{-0.11in}
+      \item \textbf{Proof-of-stake}: it considers the stake (the number of tokens) that users hold as the primary resource used to build the pool of block producers;
+            \vspace{-0.11in}
+      \item \textbf{Formal verification}: the code base is mainly written in the OCaml programming language, whose robust static type system and memory management system rule out many common runtime errors like null pointer exceptions or buffer overflows.
 \end{itemize}
+
+Tezos' smart contract language is Michelson. It is very low level, comparable to Assembly: for this reason there are several high level languages that compile to Michelson, like Ligo and SmartPy. 
 
 \section{Hash Function \& Merkle Tree}
 
@@ -28,12 +33,12 @@ In recent times new Hash functions have been designed in order to be more effici
 
 The concept of a `proof system of possession of knowledge' represents a protocol between two parties called the prover and the verifier where the prover wants to convince the verifier that he knows the proof of a given theorem \cite{de_santis_zero-knowledge_1992}. This technology has been studied since the '80s, but is finding a broad application nowadays in the blockchain field. A more recent application of Zero knowledge Proofs is zk-SNARK \cite{bitansky_extractable_2012}. It allows a proof generation from an execution of a program, and a verification of the proof without the need of the program nor the inputs and outputs. zkSNARKs have valuable proprieties, effectively composing the zkSNARK name:
 \begin{itemize}
-    \item \textbf{Succinct}: the proof size is independent from the amount of computation done in the program;
-          \vspace{-0.11in}
-    \item \textbf{Non-interactive}: the proof can be verified without interaction with the prover;
-          \vspace{-0.11in}
-    \item \textbf{Argumented knowledge}: the proof statement is correct with non-negligible probability.
-          \vspace{-0.11in}
+      \item \textbf{Succinct}: the proof size is independent from the amount of computation done in the program;
+            \vspace{-0.11in}
+      \item \textbf{Non-interactive}: the proof can be verified without interaction with the prover;
+            \vspace{-0.11in}
+      \item \textbf{Argumented knowledge}: the proof statement is correct with non-negligible probability.
+            \vspace{-0.11in}
 \end{itemize}
 
 \section{ZoKrates}
