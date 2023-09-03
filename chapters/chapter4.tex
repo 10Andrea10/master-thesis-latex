@@ -16,7 +16,7 @@ The group partially achieved the project's objectives, creating a proof of conce
 
 The Zk-Rollup execution process occurs as follows:
 \begin{enumerate}
-    \item A user dispatches a transaction to the off-chain node, managed by a NodeJS server (the Web-Manager);
+    \item A user dispatches a transaction to the off-chain node, managed by a NodeJs server (the Web-Manager);
     \item The Web-Manager logs the transaction in a transaction queue;
     \item Once three transactions accumulate, the Web-Manager fetches the current state from the Tezos Zk-Rollup smart contract;
     \item The L2 node processes the transaction batch, executing the ZoKrates program using the transaction batch and the current state as input;
@@ -38,7 +38,7 @@ Figure \ref{fig:3_drawings-adsp_sequence_general.png} illustrates the sequence o
 \end{figure} 
 
 \subsection{Developed Components}
-The team successfully implemented the Rollup-Manager \textit{Verify} entrypoint within the \textit{Rollup contract}, along with the \textit{NodeJS Manager}. Additionally, the storage mechanism was correctly executed.
+The team successfully implemented the Rollup-Manager \textit{Verify} entrypoint within the \textit{Rollup contract}, along with the \textit{NodeJs Manager}. Additionally, the storage mechanism was correctly executed.
 
 The ZoKrates program was partially developed, including:
 \begin{itemize}

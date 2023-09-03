@@ -46,15 +46,17 @@ This project successfully proved the feasibility of implementing a Tezos-based Z
 
 \section{Future Work}
 
-Future work should prioritize the following areas:
+The prototype developed in this thesis is an initial step towards a fully functional Zk-Rollup system. At the moment of writing, only the missing casting functionality in SmartPy, used during decompression, is preventing the system to be functional with high amount of users. Future work is needed to have and efficient and fully functional system. It should prioritize the following areas:
 \vspace{-0.11in}
 \begin{itemize}
-	\item \textbf{Proof Reduction and Compression}: Complete the proof reduction and compression algorithm for Layer 1, allowing contract storage updates with new balances and tokens;
+	\item \textbf{Proof Decompression}: Complete the proof decompression algorithm for Layer 1 when the functionality will be available, allowing contract storage updates with new balances and tokens;
 	      \vspace{-0.11in}
 	\item \textbf{Rollup System Optimization}: Optimize the Rollup System to reduce witness and proof generation times. This can be achieved by ZoKrates program optimization and performance evaluations on different CPU types and architectures;
 	      \vspace{-0.11in}
-	\item \textbf{Rollup System Cost}: Study infrastructure operation costs to evaluate a fair transaction fee to reward nodes submitting valid proofs.
+	\item \textbf{Rollup System Cost}: Study infrastructure operation costs to evaluate a fair transaction fee to reward nodes submitting valid proofs;
 	      \vspace{-0.11in}
+	\item \textbf{Stale user fee}: Study a fair fee amount for stale user, applying the algorithm described in Section \ref{subsec:7_staleuserfee}.
+	\vspace{-0.11in}
 \end{itemize}
 
 

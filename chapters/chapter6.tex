@@ -13,7 +13,7 @@ This chapter describes the implementation details, including the structural deci
 
 The blockchain components are constructed utilizing the Tezos blockchain\footnote{\url{https://tezos.com/}} and the SmartPy\footnote{\url{https://smartpy.io/}} smart contract language. The Rollup System is deployed on the Tezos Ghostnet test network.
 
-To design and build the Layer 2 components, web servers are developed using nodejs and Typescript running in Docker containers. The implementation of Rollup programs is achieved through the utilization of the ZoKrates toolbox\footnote{\url{https://github.com/ZoKrates/ZoKrates}}, a comprehensive zk-SNARKs toolkit designed to facilitate the creation of verifiable computation programs.
+To design and build the Layer 2 components, web servers are developed using NodeJs and Typescript running in Docker containers. The implementation of Rollup programs is achieved through the utilization of the ZoKrates toolbox\footnote{\url{https://github.com/ZoKrates/ZoKrates}}, a comprehensive zk-SNARKs toolkit designed to facilitate the creation of verifiable computation programs.
 
 The interaction between the Layer 2 and Layer 1 is made possible through the utilization of the Taquito\footnote{\url{https://tezostaquito.io/}} library, a TypeScript library that provides a simple interface for interacting with the Tezos blockchain.
 
@@ -217,7 +217,7 @@ All the interactions initiated by a user must include a signature: the signature
 
 Tezos suggests the use of the standard TZIP-12 \footnote{\url{https://tzip.tezosagora.org/proposal/tzip-12/}} for creating multi-purpose contracts able to mint tokens, including NFTs. The tokens hold some metadata, that is a map between a string and some bytes, representing strings in UTF-8. The metadata is used, for instance, to set the \textit{artifactUri}, in order to link the NFT token to the IPFS system where the artifact is stored. This simplicity allows an easy integration with the previously described Rollup System.
 
-\subsection{Changes in Storage}
+\subsection{Changes in Contract Storage}
 
 The storage of the Rollup Manager Smart Contract must be adjusted to allow storing NFT tokens. Given that NFTs can have varying quantities, it's crucial to keep track of which and how many NFTs are owned by each user. To uniquely identify a NFT a natural number is sufficient: during minting, a single number is permanently associated and represents the NFT. The primary storage change occurs in the balance field: from a natural number, it becomes a Big Map of natural numbers corresponding to the NFT ID, with their respective ownership amounts. Even with a large number of users, this change minimally affects the gas usage. As described in Section \ref{sec:5_storage} Big Maps are lazily deserialized, so only the affected tokens in a rollup are loaded in memory, saving up in gas usage.
 

@@ -98,7 +98,7 @@ Tezos fees are independent by the number of users: the proof, in fact, contains 
 
 The proposed Rollup System has demonstrated greater efficiency compared to the conventional Layer 1 transaction system. However, there are additional costs that must be considered, including the expenses associated with running Layer 2 servers and the fees required for submitting and verifying proofs. In the current design, these costs are covered by the server initiating the proof. Consequently, the introduction of a fee system for Layer 2 users becomes necessary. It's important to highlight that inactive users on Layer 2 can be problematic, as they inflate the user list, thus increasing the operational costs of the entire rollup system. To address this issue, the implementation of a stale user fee is needed.
 
-\subsection{Stale User Fee}
+\subsection{Stale User Fee\label{subsec:7_staleuserfee}}
 
 In order to execute a rollup, it is necessary to retrieve all users to recalculate the new Merkle root and determine the updated balances. As the number of users registering with the system increases, this process becomes slower. ZoKrates programs are capable of handling only powers of 2 numbers of users (including empty users) due to the merkle tree's structural characteristics. This can lead to exponential growth even when the number of users increases by just one.
 
@@ -114,7 +114,7 @@ Similar to the role of bakers in the Tezos blockchain when generating blocks, La
 
 \section{Scalability}
 
-Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. Considering table \ref{tab:6_witness-proof-time} it takes a total of 31 minutes, using the test machine, to generate a valid proof for 30 transactions to be submitted to the Rollup-Manager contract. This is a lower result than having the transactions executed directly on the main chain. Taking an ideal blockchain use where all the applications use a Rollup System, it would mean that, in the rollup configuration of 30 transactions, the total amount of interaction with Layer 1 would be reduced by $1/30$.
+Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. Considering table \ref{tab:6_witness-proof-time} it takes a total of 31 minutes, using the test machine, to generate a valid proof for 30 transactions to be submitted to the Rollup-Manager contract. This is a lower result than having the transactions executed directly on the main chain. Taking an ideal blockchain use where all the applications use a Rollup System, it would mean that, in the rollup configuration of 30 transactions, the total amount of interaction with Layer 1 would be reduced by $1/30$, having ideally 30 times the transaction throughput. This value can easily be increased by increasing the computing power of the machine running the ZoKrates program, as the witness and proof generation take advantage of all the cores available on the machine.
 
 \subsection{Scalability Improvements}
 
