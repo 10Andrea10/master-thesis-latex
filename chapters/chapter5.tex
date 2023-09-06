@@ -9,10 +9,10 @@ This chapter presents the architectural design choices of the Rollup System. The
   \label{fig:5_drawings-L1_L2_architecture_general}
 \end{figure}
 
-The system is mainly composed by two separate environments: Layer 1, situated on top of the blockchain, performing Rollup state management and proof verification; and Layer 2, operating on standard machines, responsible for processing transaction batches and generating proofs. Layer 1 is heavily influenced by the technologies used, as smart contracts must face with many blockchain platform constraints, such as gas limits, storage limits, and supported data types. In contrast, Layer 2 offers more flexibility, as it is not constrained by the underlying platform. Users interact with the Rollup System by submitting transactions to Layer 2, which is responsible for their execution. Transaction execution occurs within a resource-intensive zero-knowledge context, dependent on the complexity of the program and toolbox used.
+The system is mainly composed by two separate environments: Layer 1, situated on top of the blockchain, performs Rollup state management and proof verification; Layer 2, operating on standard machines, is responsible for processing transaction batches and generating proofs. Layer 1 is heavily influenced by the technologies used, as smart contracts must face with many blockchain platform constraints, such as gas limits, storage limits, and supported data types. In contrast, Layer 2 offers more flexibility, as it is not constrained by the underlying platform. Users interact with the Rollup System by submitting transactions to Layer 2, which is responsible for their execution. Transaction execution occurs within a resource-intensive zero-knowledge context, dependent on the complexity of the program and toolbox used.
 
 \section{Layer 1\label{sec:designLayer1}}
-Layer 1 primarily consists of the rollup smart contracts. These contracts are divided into verifier contracts and a manager contract. The verifier contracts handle rollup proof verification, while the manager contract stores the rollup state and serves as a gateway, invoking the verifiers for proof verification.
+Layer 1 primarily consists of the rollup smart contracts. These contracts are divided into verifier contracts and a manager contract. The verifier contracts handle rollup proof verification, while the Rollup-Manager contract stores the rollup state and serves as a gateway, invoking the verifiers for proof verification.
 
 \begin{figure}[htb]
   \centering
@@ -21,14 +21,14 @@ Layer 1 primarily consists of the rollup smart contracts. These contracts are di
   \label{fig:Layer1overview}
 \end{figure}
 
-This modular approach enables independent upgrades of verification contracts, addressing scenarios like bugs in L2 programs. New programs may require updated verification keys, leading to deployment of corresponding verifier contracts. By having dedicated entrypoints, the rollup contract can be updated to use new verifier contracts while leaving others unaffected, necessitating only one deployment.
+This modular approach enables independent upgrades of verification contracts, addressing scenarios like bugs in L2 programs. New programs may require updated verification keys, leading to deployment of corresponding verifier contracts. By having dedicated entrypoints, the rollup contract can be updated to use new verifier contracts while leaving others unaffected, necessitating only one deployment. Figure \ref{fig:Layer1overview} shows a representation of L1 with a deprecated contract, replaced by a newer one.
 
-Another advantage of separation is reduced gas consumption: each entrypoint loads only the necessary contract code into memory. With separate contracts, the rollup contract loads only the required verifier contract for proof verification, optimizing gas usage.
+Another advantage of the separation is reduced gas consumption: each entrypoint loads only the necessary contract code into memory. With separate contracts, the rollup contract loads only the required verifier contract for proof verification, optimizing gas usage.
 
 \subsection{Rollup Manager\label{sec:designrollupcontract}}
-The Rollup Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it indirectly stores transaction history in the blockchain.
+The Rollup Manager contract is the primary interface of the Rollup System with the blockchain. Responsible for rollup state storage and verifier contract invocation, it also indirectly stores transaction history in the blockchain represented by contract calls payload.
 
-Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant verifiers, verifying them, and updating storage with new state. This process is illustrated in the sequence diagram \ref{fig:Layer1sequencediagram}.
+Its entrypoints handle proofs from L2 programs: forward proofs to relevant verifiers, whose verify them, and update the storage with new state. This process is illustrated in the sequence diagram \ref{fig:Layer1sequencediagram}.
 
 \begin{figure}[ht]
   \centering
@@ -38,14 +38,14 @@ Its entrypoints handle proofs from L2 programs: forwarding proofs to relevant ve
 \end{figure}
 
 \paragraph{State}
-Expanding the state defined in Section \ref{sec:2_zkRollups}, the Rollup System's state includes:
+By extending the state defined in Section \ref{sec:2_zkRollups}, the Rollup System's state includes:
 \begin{itemize}
   \item \textbf{Accounts Root}: Root of the Merkle Tree containing registered accounts;
   \item \textbf{Balances Root}: Root of the Merkle Tree containing account balances;
   \item \textbf{User Map}: Map of registered users, each represented by a user index, public key, and balance.
 \end{itemize}
 
-\paragraph{Entrypoints}
+\paragraph{Contract Entrypoints}
 Multiple entrypoints optimize gas usage by loading only necessary code. Entrypoints for minimal functionality are:
 \begin{itemize}
   \item \textbf{Register}: Register a new user;
@@ -56,12 +56,12 @@ Multiple entrypoints optimize gas usage by loading only necessary code. Entrypoi
 \end{itemize}
 
 \subsection{Verifier Contracts\label{sec:designverifiercontracts}}
-Verifier contracts validate rollup proofs. Each handles a specific proof type, and are invoked by the Rollup-Manager contract.
+Verifier contracts validate rollup proofs. Each one handles a specific proof type, and are invoked by the Rollup-Manager contract.
 
-These contracts have no storage: they just expose and entrypoint to verify proofs and fail the execution in case the verification is not successful. A challenge arises with verification key sizes: large keys can prevent deployability and execution due to gas limits, as discussed in Section \ref{subsec:gasLimit}.
+These contracts have no storage: they just expose an entrypoint to verify proofs and fail the execution in case the verification is not successful. A challenge arises with verification key sizes: large keys can prevent deployability and execution due to gas limits, as discussed in Section \ref{subsec:gasLimit}.
 
 \section{Layer 2\label{sec:designLayer2}}
-Layer 2 consists of rollup programs and a Web Manager. Rollup programs generate zero-knowledge proofs, while the Web server exposes APIs available to Layer 2 users for sending transactions. Transaction batches are executed in a zero-knowledge context and Web Manager sends proofs to the manager contract.
+Layer 2 consists of rollup programs and a Web Manager. Rollup programs generate zero-knowledge proofs, while the Web Manager exposes APIs available to Layer 2 users for sending transactions. Transaction batches are executed in a zero-knowledge context and Web Manager sends the proofs to the manager contract.
 
 \begin{figure}[htb]
   \centering
@@ -73,9 +73,9 @@ Layer 2 consists of rollup programs and a Web Manager. Rollup programs generate 
 \subsection{Web Manager\label{sec:designwebserver}}
 The Web Manager provides APIs for zero-knowledge transaction execution. It calls rollup programs and awaits their completion, sending resulting proofs to the Rollup Manager contract. It also temporarily stores transaction batches, waiting for a sufficient amount of transactions to be executed.
 
-The requirement for this component is one: it must not be a bottleneck when receiving transactions and sending proofs. This can be achieved by using redundant web servers and load balancers. The amount of transactions temporarily stored is relatively low, allowing for a in memory database to be used: once reached the batch size they are executed and no trace is left. The component should also be easily deployable and with almost no configuration needed: this can be achieved, for example, by using Docker containers.
+The requirement for this component is one: it must not be a bottleneck when receiving transactions and sending proofs. This can be achieved by using redundant web servers and load balancers. The amount of transactions temporarily stored is relatively low, allowing for a in memory database to be used: once the batch size is reached  they are executed and no deleted from the database. The component should also be easily deployable and with almost no configuration needed: this can be achieved, for example, by using Docker containers.
 
 \subsection{Rollup Programs\label{sec:designrollupprograms}}
-Rollup programs are responsible for generating zero-knowledge proofs. They receive transaction batches from the Web server, execute them, and generate proofs. These proofs are sent back to the Web server, which forwards them to the manager contract. Every program has a corresponding verifier smart contract, which is able to verify the proofs generated by the program. Programs must be as small and most efficient as possible, since computing the witness for a zero knowledge proof is a very demanding operation in terms of memory and CPU usage.
+Rollup programs are responsible for generating zero-knowledge proofs. They receive transaction batches from the Web server, execute them, and generate proofs. These proofs are sent back to the Web server, which forwards them to the Rollup Manager contract. Every program has a corresponding verifier smart contract, which is able to verify the proofs generated by the program. Programs must be as small and efficient as possible, since computing the witness and the proof in a zero knowledge enviroinment is a very demanding operation in terms of memory and CPU usage.
 
-Rollup programs produce as output a proof, which is a structure containing the proof keys, public program inputs and program outputs. Those elements are used by the verifier contracts to verify the proof, while the Rollup Manager contract uses program output to update the state.
+Rollup programs produce as output a proof, which is a structure containing the proof keys, public program inputs and program outputs. Those elements are used by the verifier contracts to verify the proof, while the Rollup Manager contract uses program outputs to update the state.

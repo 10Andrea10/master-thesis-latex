@@ -8,13 +8,13 @@ In recent years, blockchain technology has witnessed remarkable growth, with the
 
 As the popularity of blockchains continues to rise, many companies are exploring the technology's potential and attracting new users. Predictions indicate exponential growth in the blockchain space in the coming years \cite{noauthor_global_nodate}. However, this growth presents a challenge due to the limited scalability offered by current blockchains. For instance, Ethereum, one of the most popular blockchains, currently faces a transaction processing limit of only 15 transactions per second (TPS).
 
-The necessity for blockchain scalability has been recognized by the community, especially evident when Ethereum transaction fees reached an average of \$70 in 2020\footnote{\url{https://ycharts.com/indicators/ethereum_average_transaction_fee}} due to the high volume of submitted transactions and consequent congestion of the network. This issue is not unique to Ethereum, as other blockchains also experience similar problems. Vitalik Buterin's `Scalability Trilemma' posits that achieving scalability, security, and decentralization simultaneously in a distributed system, such as blockchains, is a challenging task\footnote{\url{https://ethereum.org/en/roadmap/vision/}}.
+The necessity for blockchain scalability has been recognized by the community, especially evident when Ethereum transaction fees reached an average of \$70 in 2020\footnote{\url{https://ycharts.com/indicators/ethereum_average_transaction_fee}} due to the high volume of submitted transactions and consequent congestion of the network. This issue is not unique to Ethereum, as other blockchains also experience similar problems. Vitalik Buterin's `Scalability Trilemma' assert that achieving scalability, security, and decentralization simultaneously in a distributed system, such as blockchains, is a challenging task\footnote{\url{https://ethereum.org/en/roadmap/vision/}}.
 
 \section{Objective}\label{sec:objective}
 
-The objective of this thesis is to address the issue of limited scalability and high fees in the blockchains. A crucial factor that constrains the number of transactions in a block is the gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction, in fact, consumes gas, and the gas limit determines the maximum amount of computational availability.
+The objective of this thesis is to address the issue of limited scalability and high fees in blockchains. A crucial factor that constrains the number of transactions in a block is gas limit. The gas limit serves as a hard limit on the computational work that can be performed within a block, measured in gas units. Each transaction and contract interaction, in fact, consumes gas, so gas limit determines the maximum amount of computational availability.
 
-The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. It's also necessary to ensure that a minimal number of transactions can be included in the block. However, it can also hinder the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
+The gas limit mechanism is essential for preventing infinite loops in a smart contract execution and defending against denial-of-service attacks. It's also necessary to ensure that a minimal number of transactions can be included in the block. However, it can also inhibit the proper execution of a program that intentionally involves extended computations \cite{wood_ethereum_nodate}.
 
 Enhancing the blockchain's throughput is also directly impacted by the block size, as increasing its size can increase the system's capacity. Nonetheless, a thorough analysis of the consequences of enlarging the block size is necessary, as arbitrary increases can lead to negative effects. For instance, large block sizes may cause network congestion, slower propagation speeds, and an increase in the number of stale blocks—blocks that are not included in the longest chain due to conflicts or concurrency—posing potential security risks \cite{gervais_security_2016}.
 
@@ -27,7 +27,7 @@ This thesis poses three key milestones for achieving the objective of obtaining 
           \vspace{-0.11in}
     \item conduct an evaluation, enhancement, and benchmark of the rollup system.
           \vspace{-0.11in}
-    \item create and build a prototype customized to meet the requirements of an NFT marketplace.
+    \item create and build a prototype customized to run a NFT marketplace.
 \end{itemize}\
 
 A deeper explanation about problem statements and research questions is given in Chapter \ref{sec:4_problemrefinement}.

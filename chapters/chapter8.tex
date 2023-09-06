@@ -4,16 +4,12 @@
 
 \section{Summary\label{sec:summary}}
 
-The work done in this master thesis allowed to show how a problem such as high transactions fee in the blockchain can be solved, by introducing a new layer on top of the blockchain, called Layer 2. The proposed solution presents a simple architecture adaptable to various blockchains with minimal adjustments to Layer 1. In particular, the system can accommodate diverse token types, including non-fungible tokens (NFTs), like in the case of an NFT marketplace. These achievements align with the project's requirements outlined in Chapter \ref{cha:chapter4}, where is given remarkable importance to the need of having an easily adaptable system.
+The work done in this master thesis allowed to show how a problem such as high transactions fee in the blockchain can be solved, by introducing a new layer on top of the blockchain, called Layer 2. The proposed solution presents a simple architecture adaptable to various blockchains with minimal adjustments to Layer 1. In particular, the system can accommodate diverse token types, including non-fungible tokens, like in the case of an NFT marketplace. These achievements align with the project's requirements outlined in Chapter \ref{cha:chapter4}, where is given remarkable importance to the need of having an easily adaptable system.
 
 \noindent The work can be summarized into the following work steps:
 \vspace{-0.11in}
 \begin{itemize}
-	\item Analysis of existing Zk-Rollup projects and their solutions to common problems;
-	      \vspace{-0.11in}
-	\item Examination of functionalities and limitations of the Tezos blockchain;
-	      \vspace{-0.11in}
-	\item Study of ZoKrates toolbox and programs;
+	\item Analysis of existing Zk-Rollup projects and their common problems solutions;
 	      \vspace{-0.11in}
 	\item Design and implementation of Layer 2 functionalities;
 	      \vspace{-0.11in}
@@ -28,15 +24,15 @@ The work done in this master thesis allowed to show how a problem such as high t
 
 The final Rollup System is capable of handling a considerable user load, tested up to 2024, and a proportional volume of transactions, tested up to 55 transactions per rollup. Results indicate a 40\% reduction in transaction fees per transaction compared to normal Layer 1 transactions, with costs decreasing linearly as transactions are included within the rollup.
 
-Witness and proof generation times heavily depend on the underlying CPU hardware running ZoKrates. Test results showed a maximum of 40 minutes for generating a witness and proof for 1024 users and 30 transactions. Reduction of these extended execution times can be achieved through more powerful CPUs, leveraging cloud services for short bursts of computation. Notably, when compared to the alternative Optimistic Rollup solution, our Zk-Rollup system boasts significantly lower confirmation periods.
+Witness and proof generation times heavily depend on the underlying CPU hardware running ZoKrates. Test results showed a maximum of 30 minutes for generating a witness and proof for 1024 users and 30 transactions. Reduction of these extended execution times can be achieved through more powerful CPUs, leveraging cloud services for short bursts of computation. Notably, when compared to the alternative Optimistic Rollup solution, our Zk-Rollup system boasts significantly lower confirmation periods.
 
 \section{Challenges Faced}
 
 Several challenges were encountered during the project's progression, preventing its full functionality. The most important among these challenges are:
 \vspace{-0.11in}
-\paragraph{Hash Function} The choice of hash function revealed to be critical in hardware resource reduction. Transitioning from sha2-256 to Poseidon hash allowed a remarkable 10000\% decrease in RAM usage. This achievement allowed to run the system for a wider number of users, from an initial 8 users to up to 2024 users.
+\paragraph{Hash Function} The choice of hash function revealed to be critical in hardware resource reduction. Transitioning from sha256 to Poseidon hash allowed a remarkable 10000\% decrease in RAM usage. This achievement allowed to run the system for a wider number of users, from an initial 8 users to up to 2024 users.
 \vspace{-0.11in}
-\paragraph{Proof Reduction and Compression} As user numbers grew, so did proof sizes, preventing its upload to the verifier smart contract. To solve this issue, a proof reduction and compression algorithm was implemented, reducing proof length from \textit{\#users*2} to \textit{\#transactions}. Although this approach works from Layer 2 side and verification phase, it is not yet possible to extract the compressed data to update the L1 storage due to missing functionalities in the SmartPy library.
+\paragraph{Proof Reduction and Compression} As user numbers grew, so did proofs size, preventing its upload to the verifier smart contract. To solve this issue, a proof reduction and compression algorithm was implemented, reducing proof length from \textit{\#users*2} to \textit{\#transactions}. Although this approach works from Layer 2 side and verification phase, it is not yet possible to extract the compressed data to update the L1 storage due to missing functionalities in the SmartPy library.
 \vspace{-0.11in}
 \paragraph{Repeated Transition Attack} Malicious users could send repeated transactions, draining sender's account even with valid signatures. To counteract this, a nonce mechanism was introduced, preventing the same transaction to be executed more than once through nonce increment, allowing the system to check if the transaction has already been executed.
 
@@ -55,11 +51,6 @@ The prototype developed in this thesis is an initial step towards a fully functi
 	      \vspace{-0.11in}
 	\item \textbf{Rollup System Cost}: Study infrastructure operation costs to evaluate a fair transaction fee to reward nodes submitting valid proofs;
 	      \vspace{-0.11in}
-	\item \textbf{Stale user fee}: Study a fair fee amount for stale user, applying the algorithm described in Section \ref{subsec:7_staleuserfee}.
+	\item \textbf{Stale user fee}: Determine a fair fee amount for stale user, applying the algorithm described in Section \ref{subsec:7_staleuserfee}.
 	\vspace{-0.11in}
 \end{itemize}
-
-
-
-
-% Future work will enhance Component X with new services and features that can be used ...
