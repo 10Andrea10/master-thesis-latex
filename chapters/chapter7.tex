@@ -42,7 +42,7 @@ A problem that emerges immediately when compiling the ZoKrates programs are the 
 
 \paragraph{Witness Computation}
 
-Figure \ref{fig:7_sheets-resources-requirements-witness.png} shows instead the compute-witness phase, that is done during each rollup computation. This phase executes the ZoKrates program and produces the witness, that contains the results of the computation. The witness will thn be used to generate the proof of a correct computation. As it's visible from the graph, the amount of RAM used is minimal compared to the compilation phase: this allows the ZoKrates programs to run on entry-level machines, as the compilation output file can be shared as it is computed only once. This low amount of resources used brings also the benefit of fast witness computations time of the rollup programs: in table \ref{tab:6_witness-proof-time} gives a clear view about the time required to compute the witness. An increase of required time to compute the witness is visible when adding many users: the amount of time is almost directly proportional to the number of users in the rollup system. One big advantage ZoKrates offers during the computation of the witness is the capability to work with all the cores available on the machine. This allows an easy way to reduce witness computation time.
+Figure \ref{fig:7_sheets-resources-requirements-witness.png} shows the compute-witness phase, which occurs during each rollup computation. This phase executes the ZoKrates program, generating a witness containing the computation results. The witness will then be used to generate a proof of correct computation. The graph demonstrates that the RAM usage during this phase is minimal when compared to the compilation phase. Consequently, ZoKrates programs can effectively run on entry-level machines, and the compilation output file can be shared as it only needs to be computed once. This efficiency in resource utilization brings also the benefit of fast witness computations time for the rollup programs: table \ref{tab:6_witness-proof-time} gives a clear view of the time required to compute the witness. It is evident that an increase in the number of users leads to an almost directly proportional increase in witness computation time within the rollup system. One advantage ZoKrates offers during witness computation is the ability to use all the cores available on the machine, allowing a reduction of witness computation times.
 
 \begin{table}
 	\centering
@@ -81,17 +81,26 @@ The proof generation phase is more resource demanding: from Figure \ref{fig:7_sh
 
 \subsection{Tezos Rollup Fees}
 
-The verification performed by the verifier contracts and the subsequent update of the storage have costs. Verification cost is proportional to the size of the proof: during the proof verification, in fact, all the constraints are checked in a loop, consuming gas for each constraint verified. A single Layer 1 transaction between two users, as of 18/08/2023 costs 0.000518 tz.
+The Tezos Rollup system incurs costs for verification performed by verifier contracts and subsequent storage updates. The verification cost is directly related to the proof's size. During proof verification, each constraint is checked in a loop, consuming gas for each verified constraint. As of 18/08/2023, a single Layer 1 transaction between two users costs 0.000518 tz.
 
-Figure \ref{fig:7_sheets-cost-comparison.png} shows the fees for a single transaction in different scenarios of Rollup System size. The fees are calculated by submitting a rollup execution proof and looking at the fees paid for proof verification and storage update. From the graph it is evident that even with a small Rollup System, fees are very low and they're always below the fees of a single L1 transaction. Fees can increase only with the increased number of transactions, due to the subsequent proof size increment, as explained in Section \ref{sec:5_redandcompr}, but still the more transactions are included in the rollup system the more the fees are reduced.
+Figure \ref{fig:6_sheets-cost-comparison} presents the fees for a single transaction in various Rollup System size scenarios. These fees are determined by submitting a rollup execution proof and looking at the costs associated with proof verification and storage updates. From the graph it is evident that even with a small Rollup System, fees remain low and always below the fees of a single Layer 1 transaction. While Tezos fees may increase with a higher number of transactions due to the growth in proof size (as explained in Section \ref{sec:5_redandcompr}), the inclusion of more transactions in the rollup system leads to reduced fees overall.
 
-Tezos fees are independent by the number of users: the proof, in fact, contains no data about users state, but only about the two merkle tree roots and program outputs. This allows the verifier smart contract not to have to iterate over more proof fields and consume gas.
+Tezos fees are unaffected by the number of users since the proof contains no user state data, focusing only on the two merkle tree roots and transaction results. This design allows the verifier smart contract to avoid iterating over additional proof fields, which would otherwise consume more gas when more users are involved. Figure \ref{fig:6_sheets-cost-comparison-percentage} presents the percentage of saved fees when using the rollup system in different configurations. This percentage is calculated by comparing the fees of a single Layer 1 transaction with those of a single rollup transaction. The graph demonstrates that as more transactions are included in the rollup system, the fees per transaction decrease, while the addition of users has no impact on costs. When using the rollup system with 1024 users and 30 transactions, fees are reduced by 34\% compared to a single Layer 1 transaction.
 
-\begin{figure}[ht]
+\begin{figure}
 	\centering
-	\includegraphics[width=0.7\columnwidth]{6_sheets-cost-comparison.png}
-	\caption[Cost Comparison]{Cost per Transaction using different proof sizes.}
-	\label{fig:7_sheets-cost-comparison.png}
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-cost-comparison.png}
+		\caption[Cost Comparison]{Cost per Transaction. \newline x:users y:transactions}
+		\label{fig:6_sheets-cost-comparison}
+	\end{minipage}%
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{6_sheets-cost-comparison-percentage.png}
+		\caption[Transaction Savings]{Savings per Transaction. \newline x:users y:transactions}
+		\label{fig:6_sheets-cost-comparison-percentage}
+	\end{minipage}
 \end{figure}
 
 \section{Cost Model}

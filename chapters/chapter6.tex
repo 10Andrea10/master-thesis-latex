@@ -1,4 +1,4 @@
-\chapter{Implementation \label{cha:chapter6}}
+\chapter{Implementation\label{cha:chapter6}}
 
 This chapter describes the implementation details, including the structural decisions and  encountered development challenges, of the Rollup System based on the pre-existing prototype described at \ref{sec:2_adspProject}. Figure \ref{fig:6_drawings-final_rollup_architecture} shows the system's final architecture, clearly distinguishing Layer 1 and Layer 2 components and showing the interactions between them.
 
@@ -173,7 +173,7 @@ This internal deposit record has the structure of a \textit{Map(nat:mutez)}, whe
 Once the first phase is concluded, the user remains unable to spend the transferred sum until the end of the second phase.
 
 \subsubsection{Phase 2: Merkle Tree Recalculation}
-The second phase is initiated by a Web Manager that detects a considerable accumulation of deposit requests in the deposit queue. Subsequently, the Web Server accesses the deposit list and executes the ZoKrates program responsible for recalculating the merkle tree inclusive of the new deposits. Following this computation, the Web server calls the \textit{receive\_deposit\_proof} entrypoint within the Rollup Manager contract, providing the freshly computed merkle tree root as a parameter. Consequently, the manager contract updates the root of the merkle tree associated with balances and nonces, adjusts user balances to incorporate the deposited funds, and finally removes the deposits from the internal pending deposit list.
+The second phase is initiated by a Web Manager that detects a considerable accumulation of deposit requests in the deposit queue. Subsequently, the Web Manager accesses the deposit list and executes the ZoKrates program responsible for recalculating the merkle tree inclusive of the new deposits. Following this computation, the Web Manager calls the \textit{receive\_deposit\_proof} entrypoint within the Rollup Manager contract, providing the freshly computed merkle tree root as a parameter. Consequently, the manager contract updates the root of the merkle tree associated with balances and nonces, adjusts user balances to incorporate the deposited funds, and finally removes the deposits from the internal pending deposit list.
 
 \begin{figure}[ht]
 	\centering
@@ -185,7 +185,7 @@ The second phase is initiated by a Web Manager that detects a considerable accum
 \subsection{Withdraw}
 This section presents the Withdrawal process, enabling the movement of funds from the Layer 2 system to Layer 1. The withdrawal process differs from the deposit process discussed  in Section \ref{subsec:deposit}. Notably, withdrawals operate in a single phase, a strategic choice that accelerates the withdrawal procedure, enabling users to quickly retrieve their funds without the necessity of reaching a threshold of users in the withdrawal queue.
 
-Withdrawal starts as a user sends a withdrawal request to the Web Manager. Subsequently, the Web Manager retrieves the user's balance and nonce from the rollup manager contract and generates withdrawal inputs for the dedicated ZoKrates program. This ZoKrates program performs the computation of the new root hash for the merkle tree containing balances and nonces. This computation involves the subtraction of the user-specified amount. The computed new root hash is then sent back to the Web server. In turn, it calls the \textit{receive\_withdrawal\_proof} entrypoint within the manager smart contract providing the new root hash as parameter.
+Withdrawal starts as a user sends a withdrawal request to the Web Manager. Subsequently, the Web Manager retrieves the user's balance and nonce from the rollup manager contract and generates withdrawal inputs for the dedicated ZoKrates program. This ZoKrates program performs the computation of the new root hash for the merkle tree containing balances and nonces. This computation involves the subtraction of the user-specified amount. The computed new root hash is then sent back to the Web Manager. In turn, it calls the \textit{receive\_withdrawal\_proof} entrypoint within the manager smart contract providing the new root hash as parameter.
 
 Within the manager contract, the merkle tree root hash undergoes an update, alongside adjustments to the user's balance and nonce. Subsequently, the requested sum is transferred to the user's account through an L1 transaction, finalizing the withdrawal process.
 

@@ -1,4 +1,4 @@
-\chapter{Background}
+\chapter{Background\label{cha:chapter2}}
 
 This chapter covers the basic concepts crucial for understanding this thesis, providing the essential information, without having a deep explanation of each topic.
 
@@ -19,7 +19,7 @@ Tezos \cite{allombert_introduction_2019} is a relatively new blockchain, based o
       \item \textbf{Formal verification}: the code base is mainly written in the OCaml programming language, whose robust static type system and memory management system rule out many common runtime errors like null pointer exceptions or buffer overflows.
 \end{itemize}
 
-Tezos' smart contract language is Michelson. It is very low level, comparable to Assembly: for this reason there are several high level languages that compile to Michelson, like Ligo and SmartPy. 
+Tezos' smart contract language is Michelson. It is very low level, comparable to Assembly: for this reason there are several high level languages that compile to Michelson, like Ligo and SmartPy.
 
 \section{Hash Function \& Merkle Tree}
 
@@ -50,6 +50,15 @@ This toolbox utilizes a language style similar to C++, facilitating developers a
 Another constraint is that the toolbox requires loop sizes to be known during compile time. This becomes problematic when dealing, for instance, with a variable number of users, as the number of iterations of the loops depends on the number of users.
 
 ZoKrates produces verifiable proofs, defined as follows: a structure with proof keys, public program inputs and program outputs. It's generated using a proving key and can be verified only using the corresponding verification key.
+
+Figure \ref{fig:2_zokrates-flow} shows the sequence of ZoKrates phases execution. The phases marked with a circle are done only once during the lifetime of a program, while the ones marked with a square are executed for each program execution.
+
+\begin{figure}[htb]
+      \centering
+      \includegraphics[width=0.8\columnwidth]{2_zokrates-flow.png}
+      \caption{ZoKrates Phases \cite{ise_department_tub_material_nodate}}
+      \label{fig:2_zokrates-flow}
+\end{figure}
 
 \section{Signature \& BLS12-381}
 
