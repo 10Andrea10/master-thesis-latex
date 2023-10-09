@@ -1,14 +1,12 @@
 \chapter{Evaluation\label{cha:chapter7}}
 
-In this chapter the implementation of the Rollup System is evaluated.
-\todo[inline]{Write something}
+In this chapter, the implementation of the Rollup System is subjected to evaluation. Benchmarks are conducted to measure system performance, comparing its cost with the Layer 1 system. Additionally, the chapter explores the system's scalability.
 
 
-% Put some screenshots in this section! Map the requirements with your proposed solution. Compare it with related work. Why is your solution better than a concurrent approach from another organization?
 
 \section{Test Environment\label{sec:testenvir}}
 
-ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52. When elsewhere specified it has been used a Google Cloud Platform virtual machine with 12 vCPU Intel Haswell, 256GB of RAM and 300 GB of SSD. This machine runs Debian 11.
+ISE's department offers a server for executing the Rollup System. The server is equipped with an Intel Xeon CPU E3-1270 v6 @ 3.80GHz, 64GB DDR4 RAM, 32 GB of SWAP memory and 250GB of SSD storage. The server runs Gentoo release 2.7 Linux distribution with kernel version 5.10.52. When more than 64GB of RAM was neede, it has been used a Google Cloud Platform virtual machine with 12 vCPU Intel Haswell, 256GB of RAM and 300 GB of SSD. This machine runs Debian 11.
 
 The blockchain used for the Rollup System is the Tezos blockchain running on the Ghostnet testnet, with Nairobi Protocol. The RPC node used is \url{https://ghostnet.ecadinfra.com/}.
 
@@ -123,7 +121,7 @@ Similar to the role of bakers in the Tezos blockchain when generating blocks, La
 
 \section{Scalability}
 
-Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. Considering table \ref{tab:6_witness-proof-time} it takes a total of 31 minutes, using the test machine, to generate a valid proof for 30 transactions to be submitted to the Rollup-Manager contract. This is a slower result than having the transactions executed directly on the main chain. Taking an ideal blockchain use where all the applications use a Rollup System, it would mean that, in the rollup configuration of 30 transactions, the total amount of interaction with Layer 1 would be reduced by $1/30$, having ideally 30 times the transaction throughput. This value can easily be increased by increasing the computing power of the machine running the ZoKrates program, as the witness and proof generation take advantage of all the cores available on the machine.
+Achieving scalability when using zero knowledge proofs is a challenge due to the high amount of resources needed to run the computational phase of zk programs. The time needed to finalize the proof generation is also a factor that limits the scalability of the system. Considering table \ref{tab:6_witness-proof-time} it takes a total of 31 minutes, using the test machine, to generate a valid proof for 30 transactions to be submitted to the Rollup-Manager contract. This is a slower result than having the transactions executed directly on the main chain. Taking an ideal blockchain use where all the applications use a Rollup System, it would mean that, in the rollup configuration of 30 transactions, the total amount of interaction with Layer 1 would be reduced by a factor of 30, having ideally 30 times the transaction throughput. This value can easily be increased by increasing the computing power of the machine running the ZoKrates program, as the witness and proof generation take advantage of all the cores available on the machine.
 
 \subsection{Scalability Improvements}
 
